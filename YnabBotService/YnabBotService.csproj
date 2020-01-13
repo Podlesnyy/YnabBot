@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>dotnet-YnabBotService-392D456C-0D56-43FB-902A-D17AEA4F9C30</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <RootNamespace>Adp.YnabBotService</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="NLog.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="NLog.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.9.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Banks\AlfaBank\AlfaBank.csproj" />
+    <ProjectReference Include="..\Banks\Citibank\Citibank.csproj" />
+    <ProjectReference Include="..\Banks\Interfaces\Interfaces.csproj" />
+    <ProjectReference Include="..\Banks\SberBank\SberBank.csproj" />
+    <ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj" />
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\Messengers\Interfaces\Interfaces.csproj" />
+    <ProjectReference Include="..\Messengers\Telegram\Telegram.csproj" />
+    <ProjectReference Include="..\Persistent\Persistent.csproj" />
+    <ProjectReference Include="..\YnabClient\YnabClient.csproj" />
+  </ItemGroup>
+</Project>

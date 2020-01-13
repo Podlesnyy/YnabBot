@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Adp.Banks.Interfaces</RootNamespace>
+    <AssemblyName>Banks.Interfaces</AssemblyName>
+  </PropertyGroup>
+
+</Project>

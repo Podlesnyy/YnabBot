@@ -1,0 +1,34 @@
+version: "3.4"
+
+services:
+  db:
+    image: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 1
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/mysql
+  ynabbot:
+    depends_on:
+       - db  
+    build: .
+    network_mode: host
+    restart: always
+    image: adp/ynabbot
+
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      YNABBOT_PROXY_USE: ${YNABBOT_PROXY_USE}
+      YNABBOT_PROXY_HOST: ${YNABBOT_PROXY_HOST}
+      YNABBOT_PROXY_PORT: ${YNABBOT_PROXY_PORT}
+      YNABBOT_TELEGRAM_TOKEN: ${YNABBOT_TELEGRAM_TOKEN}
+      
+volumes:
+    dbdata:
