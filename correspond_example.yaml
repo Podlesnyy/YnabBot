@@ -1,0 +1,14 @@
+- BankAccount: 3240897534789
+  YnabAccount:
+    Budget: RUB
+    Account: Cash
+  
+- BankAccount: 7089213416
+  YnabAccount:
+    Budget: RUB
+    Account: Alfa
+  
+- BankAccount: 00128934
+  YnabAccount:
+    Budget: RUB
+    Account: Sber
