@@ -6,6 +6,7 @@ using Adp.Banks.Interfaces;
 using Adp.Messengers.Interfaces;
 using Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using NLog;
 using Persistent;
 using YamlDotNet.Serialization;
@@ -21,12 +22,16 @@ namespace Adp.YnabClient
         private readonly IMessageSender messageSender;
         private readonly Dictionary<string, User> dicYnabUsers = new Dictionary<string, User>();
         private List<MessengerUser> users;
+        private string ynabClientSecret;
+        private string ynabClientID;
 
-        public MessageFromBotToYnabConverter(IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext )
+        public MessageFromBotToYnabConverter(IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, IConfiguration configuration )
         {
             this.messageSender = messageSender;
             this.banks = banks;
             this.dbContext = dbContext;
+            ynabClientID = configuration.GetValue<string>("YNAB_CLIENT_ID");
+            ynabClientSecret = configuration.GetValue<string>("YNAB_CLIENT_SECRET");
             users = dbContext.Users.Include(item => item.BankAccountToYnabAccounts).ThenInclude(item=>item.YnabAccount).Include(item=>item.DefaultYnabAccount).ToList();
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -35,24 +40,31 @@ namespace Adp.YnabClient
         public void OnMessage(ReplyInfo replyInfo, string message)
         {
             /* Bot Commands
-            setup-Initial bot setup
-            resetdefaultbudget-Reset your default budget and account
-            listynabaccounts-list all your YNAB budgets and accounts
-            listbankaccounts-list bank account matching ynab accounts
+            auth-Authorize bot to your YNAB account
+            setdefaultbudget-Set your default budget and account for quick transactions adding
+            listynabaccounts-List all your YNAB budgets and accounts
+            listmatching-List bank account matching YNAB accounts
+            removemyinfo-Remove all your stored info
             */
             switch (message)
             {
-                case "/setup":
-                    GetUser(replyInfo).StartSetupCommand(replyInfo);
+                case "/start":
+                    messageSender.SendMessage(replyInfo, "Welcome to bot for YNAB!");
                     break;
-                case "/resetdefaultbudget":
+                case "/auth":
+                    GetUser(replyInfo).AuthCommand(replyInfo);
+                    break;
+                case "/setdefaultbudget":
                     GetUser(replyInfo).StartSetDefaultBudget(replyInfo);
                     break;
                 case "/listynabaccounts":
                     GetUser(replyInfo).ListYnabAccountsCommand(replyInfo);
                     break;
-                case "/listbankaccounts":
+                case "/listmatching":
                     GetUser(replyInfo).ListBankAccountsCommand(replyInfo);
+                    break;
+                case "/removemyinfo":
+                    //TODO
                     break;
                 default:
                     GetUser(replyInfo).OnMessage(replyInfo, message);
@@ -104,7 +116,7 @@ namespace Adp.YnabClient
 
         private User CreateAndInitUser(ReplyInfo replyInfo)
         {
-            var user = new User(messageSender, this);
+            var user = new User(messageSender, this, ynabClientID, ynabClientSecret);
             dicYnabUsers[replyInfo.UserId] = user;
 
             user.Init(replyInfo, GetDbUser(replyInfo.UserId));

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
@@ -29,26 +30,35 @@ namespace Adp.YnabClient
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> setDefaultAccountTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> setDefaultBudgetTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> setReadyTrigger;
-        private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> startSetupTrigger;
+        private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> startAuthTrigger;
+        private string ynabClientId;
+        private string ynabClientSecret;
+        private string baseYnabUri;
+        private string redirect_uri;
 
-        public User(IMessageSender messageSender, IDbSaver dbSaver )
+        public User(IMessageSender messageSender, IDbSaver dbSaver, string ynabClientId, string ynabClientSecret )
         {
             this.messageSender = messageSender;
             this.dbSaver = dbSaver;
+            this.ynabClientId = ynabClientId;
+            this.ynabClientSecret = ynabClientSecret;
+
+            baseYnabUri = "https://app.youneedabudget.com/oauth/";
+            redirect_uri = "https://alf49lthsb.execute-api.us-east-2.amazonaws.com/auth";
 
             machine = new StateMachine<State, Trigger>(State.Unknown);
             SetupTriggers();
             SetupStateUnknown();
-            SetupStateEnteringAccessToken();
+            SetupStateAuthorizing();
             SetupStateEnteringDefaultBudget();
             SetupStateEnteringDefaultAccount();
             SetupStateReady();
             SetupStateApplyingSettings();
         }
 
-        public void StartSetupCommand(in ReplyInfo replyInfo)
+        public void AuthCommand(in ReplyInfo replyInfo)
         {
-            machine.Fire(startSetupTrigger, replyInfo);
+            machine.Fire(startAuthTrigger, replyInfo);
         }
 
         public void OnMessage(in ReplyInfo replyInfo, string message)
@@ -71,7 +81,7 @@ namespace Adp.YnabClient
             machine.Configure(State.ApplyingSettings).
                 OnEntryFrom(applyUserSettingsTrigger, (replyInfo, _) => OnApplyUserSettings(replyInfo)).
                 Permit(Trigger.Unknown, State.Unknown).
-                Permit(Trigger.StartSetup, State.EnteringAccessToken).
+                Permit(Trigger.StartSetup, State.Authorizing).
                 Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
                 Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount).
                 Permit(Trigger.SetReady, State.Ready);
@@ -85,7 +95,7 @@ namespace Adp.YnabClient
                 InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).
                 OnEntryFrom(setReadyTrigger, (replyInfo, _) => messageSender.SendMessage(replyInfo, "Congratulations! Setup is finished")).
                 Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
-                Permit(Trigger.StartSetup, State.EnteringAccessToken).
+                Permit(Trigger.StartSetup, State.Authorizing).
                 Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
@@ -102,7 +112,7 @@ namespace Adp.YnabClient
                         "Select default account",
                         account.DicAccounts[account.DicAccounts.Keys.First(item => item.Name == dbUser.DefaultYnabAccount.Budget)].Select(item => item.Name).ToList())).
                 Permit(Trigger.SetReady, State.Ready).
-                Permit(Trigger.StartSetup, State.EnteringAccessToken).
+                Permit(Trigger.StartSetup, State.Authorizing).
                 Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
@@ -115,18 +125,24 @@ namespace Adp.YnabClient
                 OnEntryFrom(setDefaultBudgetTrigger, replyInfo => messageSender.SendOptions(replyInfo, "Select default budget", account.DicAccounts.Keys.Select(item => item.Name).ToList())).
                 PermitReentry(Trigger.SetDefaultBudget).
                 Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount).
-                Permit(Trigger.StartSetup, State.EnteringAccessToken).
+                Permit(Trigger.StartSetup, State.Authorizing).
                 Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
-        private void SetupStateEnteringAccessToken()
+        private void SetupStateAuthorizing()
         {
-            const string pleaseEnterYnabToken = "Please enter your YNAB access token. More info on https://api.youneedabudget.com/";
-            machine.Configure(State.EnteringAccessToken).
-                InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnAccessToken(replyInfo, message)).
+            var authUrl = $"{baseYnabUri}authorize?client_id={ynabClientId}&redirect_uri={redirect_uri}&response_type=code";
+
+            var pleaseAuthorize = $"1. <a href=\"{authUrl}\">Please authorize bot</a>" +
+                                     Environment.NewLine +
+                                     "2. When you will be redirected back to telegram" + Environment.NewLine +
+                                     "3. From telegram chat click <strong>Start</strong> button";
+
+            machine.Configure(State.Authorizing).
+                InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnAuthCode(replyInfo, message)).
                 InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
-                InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, pleaseEnterYnabToken)).
-                OnEntryFrom(startSetupTrigger, replyInfo => messageSender.SendMessage(replyInfo, pleaseEnterYnabToken)).
+                InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, pleaseAuthorize)).
+                OnEntryFrom(startAuthTrigger, replyInfo => messageSender.SendMessage(replyInfo, pleaseAuthorize)).
                 PermitReentry(Trigger.StartSetup).
                 Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
                 Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
@@ -134,13 +150,13 @@ namespace Adp.YnabClient
 
         private void SetupStateUnknown()
         {
-            const string youShouldRunSetupCommand = "You should run /setup command";
+            const string youShouldRunSetupCommand = "At first you should run /auth command";
             machine.Configure(State.Unknown).
                 InternalTransition(onMessageTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
                 InternalTransition(setDefaultBudgetTrigger, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
                 InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
                 InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
-                Permit(Trigger.StartSetup, State.EnteringAccessToken).
+                Permit(Trigger.StartSetup, State.Authorizing).
                 Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
@@ -151,7 +167,7 @@ namespace Adp.YnabClient
             setDefaultAccountTrigger = machine.SetTriggerParameters<ReplyInfo>(Trigger.SetDefaultAccount);
             listAccounts = machine.SetTriggerParameters<ReplyInfo>(Trigger.ListAccounts);
             applyUserSettingsTrigger = machine.SetTriggerParameters<ReplyInfo>(Trigger.ApplyUserSettings);
-            startSetupTrigger = machine.SetTriggerParameters<ReplyInfo>(Trigger.StartSetup);
+            startAuthTrigger = machine.SetTriggerParameters<ReplyInfo>(Trigger.StartSetup);
             setReadyTrigger = machine.SetTriggerParameters<ReplyInfo>(Trigger.SetReady);
             onAddTransactionFromFileTrigger = machine.SetTriggerParameters<ReplyInfo, List<Transaction>>(Trigger.OnAddTransactionsFromFile);
         }
@@ -284,12 +300,38 @@ namespace Adp.YnabClient
         }
 
 
-        private void OnAccessToken(in ReplyInfo replyInfo, string accessToken)
+        private void OnAuthCode(in ReplyInfo replyInfo, string authCode)
         {
-            if (!TryLoadBudgets(replyInfo, accessToken))
+            const string start = "/start ";
+            if (!authCode.StartsWith(start))
+            {
+                messageSender.SendMessage(replyInfo, "Auth code parsing failed");
+                machine.Fire(Trigger.Unknown);
+            }
+
+            authCode = authCode.Replace(start, string.Empty);
+
+            var values = new Dictionary<string, string>
+            {
+                { "client_id", ynabClientId},
+                { "client_secret", ynabClientSecret },
+                { "redirect_uri", redirect_uri },
+                { "grant_type", "authorization_code" },
+                { "code", authCode }
+            };
+            var content = new FormUrlEncodedContent(values);
+
+
+            var client = new HttpClient();
+            var authUrl = $"{baseYnabUri}token";
+
+            var response = client.PostAsync(authUrl, content).Result;
+            var responseString = response.Content.ReadAsStringAsync().Result;
+
+            if (!TryLoadBudgets(replyInfo, authCode))
                 return;
 
-            dbUser.YnabAccessToken = accessToken;
+            dbUser.YnabAccessToken = authCode;
             dbSaver.Save();
             machine.Fire(setDefaultBudgetTrigger, replyInfo);
         }
@@ -327,7 +369,7 @@ namespace Adp.YnabClient
         private enum State
         {
             Unknown,
-            EnteringAccessToken,
+            Authorizing,
             EnteringDefaultBudget,
             EnteringDefaultAccount,
             ApplyingSettings,
