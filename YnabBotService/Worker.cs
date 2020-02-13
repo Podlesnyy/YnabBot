@@ -8,6 +8,7 @@ using Adp.Banks.Interfaces;
 using Adp.Messengers.Interfaces;
 using Adp.Messengers.Telegram;
 using Adp.YnabClient;
+using Adp.YnabClient.Ynab;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -29,7 +30,10 @@ namespace Adp.YnabBotService
             var builder = new ContainerBuilder();
             builder.RegisterInstance(configuration).As<IConfiguration>();
             builder.RegisterType<TelegramBot>().As<IMessageSender>();
+            builder.RegisterType<Oauth>().AsSelf().SingleInstance();
             builder.RegisterType<MessageFromBotToYnabConverter>().AsSelf().SingleInstance();
+            
+            
 
             builder.RegisterType<YnabDbContext>().AsSelf().InstancePerLifetimeScope();
 

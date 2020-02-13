@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Adp.Banks.Interfaces;
 using Adp.Messengers.Interfaces;
+using Adp.YnabClient.Ynab;
 using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,16 +23,15 @@ namespace Adp.YnabClient
         private readonly IMessageSender messageSender;
         private readonly Dictionary<string, User> dicYnabUsers = new Dictionary<string, User>();
         private List<MessengerUser> users;
-        private string ynabClientSecret;
-        private string ynabClientID;
+        private Oauth oauth;
 
-        public MessageFromBotToYnabConverter(IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, IConfiguration configuration )
+        public MessageFromBotToYnabConverter(IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, Oauth oauth )
         {
             this.messageSender = messageSender;
             this.banks = banks;
             this.dbContext = dbContext;
-            ynabClientID = configuration.GetValue<string>("YNAB_CLIENT_ID");
-            ynabClientSecret = configuration.GetValue<string>("YNAB_CLIENT_SECRET");
+
+            this.oauth = oauth;
             users = dbContext.Users.Include(item => item.BankAccountToYnabAccounts).ThenInclude(item=>item.YnabAccount).Include(item=>item.DefaultYnabAccount).ToList();
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -116,7 +116,7 @@ namespace Adp.YnabClient
 
         private User CreateAndInitUser(ReplyInfo replyInfo)
         {
-            var user = new User(messageSender, this, ynabClientID, ynabClientSecret);
+            var user = new User(messageSender, this, oauth );
             dicYnabUsers[replyInfo.UserId] = user;
 
             user.Init(replyInfo, GetDbUser(replyInfo.UserId));

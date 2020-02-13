@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Domain
@@ -10,5 +11,7 @@ namespace Domain
         public string YnabAccessToken { get; set; }
         public YnabAccount DefaultYnabAccount { get; set; }
         public List<BankAccountToYnabAccount> BankAccountToYnabAccounts { get; set;  }
+        public string RefreshToken { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
