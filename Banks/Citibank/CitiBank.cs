@@ -19,11 +19,12 @@ namespace Adp.Banks.Citibank
 
         public string FileEncoding => "utf-8";
 
-        public List<Transaction> Parse(string fileContent)
+        public List<Transaction> Parse(string file)
         {
-            var transofrm = fileContent.Replace("\",\"", ";").Replace("\"", string.Empty).Replace("'", string.Empty).Replace(Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble()), string.Empty);
+            //var transofrm = file.Replace("\",\"", ";").Replace("\"", string.Empty).Replace("'", string.Empty).Replace(Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble()), string.Empty);
             var ret = new List<Transaction>();
-            var csv = new CsvReader(new StringReader(transofrm));
+            using var reader = new StreamReader(file, Encoding.GetEncoding("utf-8"));
+            using var csv = new CsvReader(reader, RussianCi);
             csv.Configuration.Delimiter = ";";
             csv.Configuration.CultureInfo = RussianCi;
             csv.Configuration.HasHeaderRecord = false;

@@ -48,6 +48,24 @@ namespace Adp.YnabClient.Ynab
             return JsonConvert.DeserializeObject<AccessTokenInfo>(responseStr);
         }
 
+        public AccessTokenInfo GetRefreshedAccessToken(string refreshToken )
+        {
+            var values = new Dictionary<string, string>
+            {
+                { "client_id", ynabClientId},
+                { "client_secret", ynabClientSecret },
+                { "grant_type", "refresh_token" },
+                { "refresh_token", refreshToken }
+            };
+            var content = new FormUrlEncodedContent(values);
+
+            var authUrl = $"{baseYnabUri}token";
+
+            var response = client.PostAsync(authUrl, content).Result;
+            var responseStr = response.Content.ReadAsStringAsync().Result;
+            return JsonConvert.DeserializeObject<AccessTokenInfo>(responseStr);
+        }
+
         public class AccessTokenInfo
         {
             public string access_token { get; set; }

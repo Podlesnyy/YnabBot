@@ -7,9 +7,7 @@ namespace Persistent
     public sealed class YnabDbContext : DbContext
     {
         private readonly IConfiguration configuration;
-        public DbSet<MessengerUser> Users { get; set; }
-        public DbSet<YnabAccount> YnabAccounts { get; set; }
-        public DbSet<BankAccountToYnabAccount> BankAccountToYnabAccounts { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public YnabDbContext(IConfiguration configuration)
         {
@@ -28,7 +26,7 @@ namespace Persistent
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<MessengerUser>().HasMany(item => item.BankAccountToYnabAccounts).WithOne();
+            modelBuilder.Entity<User>().HasMany(item => item.BankAccountToYnabAccounts).WithOne();
             base.OnModelCreating(modelBuilder);
         }
     }

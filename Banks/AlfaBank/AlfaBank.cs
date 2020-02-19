@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
 using CsvHelper;
@@ -12,18 +13,18 @@ namespace Adp.Banks.AlfaBank
     {
         private static readonly CultureInfo RussianCi = new CultureInfo("ru");
 
+        public string FileEncoding => "windows-1251";
+
         public bool IsItYour(string fileName)
         {
             return fileName.Contains("movementList");
         }
 
-        public string FileEncoding => "windows-1251";
-
-        public List<Transaction> Parse(string fileContent)
+        public List<Transaction> Parse(string file)
         {
             var ret = new List<Transaction>();
-            var csv = new CsvReader(new StringReader(fileContent));
-            csv.Configuration.CultureInfo = RussianCi;
+            using var reader = new StreamReader(file, Encoding.GetEncoding("windows-1251"));
+            using var csv = new CsvReader(reader, RussianCi);
             csv.Configuration.Delimiter = ";";
             csv.Configuration.HasHeaderRecord = true;
             csv.Configuration.BadDataFound = null;

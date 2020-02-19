@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using Adp.Banks.Interfaces;
 using CsvHelper;
 
@@ -18,13 +19,13 @@ namespace Adp.Banks.SberBank
 
         public string FileEncoding => "utf-8";
 
-        public List<Transaction> Parse(string fileContent)
+        public List<Transaction> Parse(string file)
         {
             //Тип карты; Номер карты; Дата совершения операции; Дата обработки операции; Код авторизации; Тип операции; Город совершения операции; Страна совершения операции; Описание; Валюта операции; Сумма в валюте операции; Сумма в валюте счета;
             //Основная; *3325; 06.11.2019; 06.11.2019; 216156; 1; Moscow; RUS; Зачисление зарплаты; ; ; 36683,54;
             var ret = new List<Transaction>();
-            var csv = new CsvReader(new StringReader(fileContent));
-            csv.Configuration.CultureInfo = RussianCi;
+            using var reader = new StreamReader(file, Encoding.GetEncoding("utf-8"));
+            using var csv = new CsvReader(reader, RussianCi);
             csv.Configuration.Delimiter = ";";
             csv.Configuration.HasHeaderRecord = true;
             csv.Configuration.BadDataFound = null;

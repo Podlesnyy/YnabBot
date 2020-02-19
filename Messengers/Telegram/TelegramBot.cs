@@ -32,7 +32,6 @@ namespace Adp.Messengers.Telegram
             var useProxy = configuration.GetValue<bool>("YNABBOT_PROXY_USE");
             logger.Info($"Use proxy = {useProxy}");
             var token = configuration.GetValue<string>("YNABBOT_NEW_TELEGRAM_TOKEN");//TODO вернуть на обычный, когда будет новый бот с OAuth
-            // useProxy = false;
             if (useProxy)
             {
                 var host = configuration.GetValue<string>("YNABBOT_PROXY_HOST");
