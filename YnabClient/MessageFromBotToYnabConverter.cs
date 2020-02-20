@@ -115,8 +115,13 @@ namespace Adp.YnabClient
 
         private List<Transaction> ParseFile(string fileName, MemoryStream stream)
         {
+            string Content(string enc)
+            {
+                return Encoding.GetEncoding(enc).GetString(stream.ToArray());
+            }
+
             var bank = banks.FirstOrDefault(item => item.IsItYour(fileName));
-            if (bank != null) return bank.Parse(fileName);
+            if (bank != null) return bank.Parse(Content(bank.FileEncoding));
 
             logger.Info("Не могу найти банк по имени файла: " + fileName);
             return new List<Transaction>();

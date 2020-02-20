@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace Adp.Banks.AlfaBank
 {
@@ -13,25 +13,23 @@ namespace Adp.Banks.AlfaBank
     {
         private static readonly CultureInfo RussianCi = new CultureInfo("ru");
 
-        public string FileEncoding => "windows-1251";
-
         public bool IsItYour(string fileName)
         {
             return fileName.Contains("movementList");
         }
 
-        public List<Transaction> Parse(string file)
+        public string FileEncoding => "windows-1251";
+
+        public List<Transaction> Parse(string fileContent)
         {
             var ret = new List<Transaction>();
-            using var reader = new StreamReader(file, Encoding.GetEncoding("windows-1251"));
-            using var csv = new CsvReader(reader, RussianCi);
-            csv.Configuration.Delimiter = ";";
-            csv.Configuration.HasHeaderRecord = true;
-            csv.Configuration.BadDataFound = null;
+
+            var config = new CsvConfiguration(RussianCi) {Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null};
+            var csv = new CsvReader(new StringReader(fileContent), config);
+
             csv.Read();
             while (csv.Read())
             {
-                //  Счёт кредитной карты; 40817810206230046528; RUR; 13.11.19; CBPP15; Выплата Cash Back Подлесный Андрей Дмитриевич за 01.10.19 - 31.10.19 по World -MasterCard Credit,  в соотв. Приказ №952 01.12.16, Осн.Расчёт; 548,57; 0;
                 var idField = csv.GetField<string>(4);
                 if (idField == "CRRR#U1704091501")
                     continue;

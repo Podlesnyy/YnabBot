@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using Adp.Banks.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace Adp.Banks.Tinkoff
 {
@@ -17,16 +17,15 @@ namespace Adp.Banks.Tinkoff
             return fileName.Contains("operations");
         }
 
-        public List<Transaction> Parse(string file)
+        public string FileEncoding => "windows-1251";
+
+        public List<Transaction> Parse(string fileContent)
         {
             var ret = new List<Transaction>();
-            using var reader = new StreamReader(file, Encoding.GetEncoding("windows-1251"));
-            using var csv = new CsvReader(reader, RussianCi);
-            csv.Configuration.Delimiter = ";";
-            csv.Configuration.HasHeaderRecord = true;
-            csv.Configuration.BadDataFound = null;
-            csv.Read();
+            var config = new CsvConfiguration(RussianCi) { Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null };
+            var csv = new CsvReader(new StringReader(fileContent), config);
 
+            csv.Read();
             while (csv.Read())
             {
                 var status = csv.GetField<string>(3);

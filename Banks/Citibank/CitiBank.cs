@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using Adp.Banks.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace Adp.Banks.Citibank
 {
@@ -19,16 +20,12 @@ namespace Adp.Banks.Citibank
 
         public string FileEncoding => "utf-8";
 
-        public List<Transaction> Parse(string file)
+        public List<Transaction> Parse(string fileContent)
         {
-            //var transofrm = file.Replace("\",\"", ";").Replace("\"", string.Empty).Replace("'", string.Empty).Replace(Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble()), string.Empty);
+            var transofrm = fileContent.Replace("\",\"", ";").Replace("\"", string.Empty).Replace("'", string.Empty).Replace(Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble()), string.Empty);
+            var config = new CsvConfiguration(RussianCi) {Delimiter = ";", HasHeaderRecord = false, BadDataFound = null};
+            var csv = new CsvReader(new StringReader(transofrm), config);
             var ret = new List<Transaction>();
-            using var reader = new StreamReader(file, Encoding.GetEncoding("utf-8"));
-            using var csv = new CsvReader(reader, RussianCi);
-            csv.Configuration.Delimiter = ";";
-            csv.Configuration.CultureInfo = RussianCi;
-            csv.Configuration.HasHeaderRecord = false;
-            csv.Configuration.BadDataFound = null;
             while (csv.Read())
             {
                 var schet = csv.GetField<string>(3);
