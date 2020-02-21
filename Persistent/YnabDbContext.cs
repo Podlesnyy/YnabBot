@@ -17,7 +17,7 @@ namespace Persistent
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var database = configuration.GetValue<string>("MYSQL_NEW_DATABASE");
+            var database = configuration.GetValue<string>("MYSQL_DATABASE");
             var user = configuration.GetValue<string>("MYSQL_USER");
             var password = configuration.GetValue<string>("MYSQL_PASSWORD");
 
