@@ -1,4 +1,4 @@
-This bot will easy add transaction info to your YNAB account
+[This bot](https://t.me/ynab_with_bot) will easy add transaction info to your YNAB account
 
 You can read about my [motivation](https://github.com/Podlesnyy/YnabBot/wiki/YNAB--&-Telegram-bot-=-%F0%9F%A7%A1)
 
