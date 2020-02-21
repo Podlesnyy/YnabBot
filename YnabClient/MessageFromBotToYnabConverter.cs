@@ -26,6 +26,8 @@ namespace Adp.YnabClient
         private List<Domain.User> users;
         private Oauth oauth;
 
+        
+
         public MessageFromBotToYnabConverter(IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, Oauth oauth )
         {
             this.messageSender = messageSender;
@@ -47,10 +49,12 @@ namespace Adp.YnabClient
             listmatching-List bank account matching YNAB accounts
             removemyinfo-Remove all your stored info
             */
+
             switch (message)
             {
                 case "/start":
-                    messageSender.SendMessage(replyInfo, "Welcome to bot for YNAB!" + Environment.NewLine + "You have to authorize the bot with the /auth command, before you start adding transactions");
+                    messageSender.SendMessage(replyInfo, 
+                        $"Welcome to bot for YNAB!{Environment.NewLine}This bot is not officially supported by YNAB in any way. Use of this bot could introduce problems into your budget that YNAB, through its official support channels, will not be able to troubleshoot or fix. Please use at your own risk!{Environment.NewLine}You will acknowledge this by using the /auth command");
                     break;
                 case "/auth":
                     GetUser(replyInfo).AuthCommand(replyInfo);
