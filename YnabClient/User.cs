@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -31,6 +32,8 @@ namespace Adp.YnabClient
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> setDefaultBudgetTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> setReadyTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> startAuthTrigger;
+
+        private string transactionHelp = $"Example transaction:{Environment.NewLine}Apples 7,47";
 
         public User(IMessageSender messageSender, IDbSaver dbSaver, Oauth oauth)
         {
@@ -103,7 +106,8 @@ namespace Adp.YnabClient
         {
             machine.Configure(State.Ready).InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnEnteringTransaction(replyInfo, message))
                 .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions))
-                .InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).OnEntryFrom(setReadyTrigger, (replyInfo, _) => messageSender.SendMessage(replyInfo, "Congratulations! Setup is finished"))
+                .InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).OnEntryFrom(setReadyTrigger,
+                    (replyInfo, _) => messageSender.SendMessage(replyInfo, $"Congratulations!{Environment.NewLine}Now you can add transaction directly to your YNAB account {dbUser.DefaultYnabAccount.Budget}/{dbUser.DefaultYnabAccount.Account}{Environment.NewLine}{transactionHelp}"))
                 .Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).Permit(Trigger.StartAuth, State.Authorizing).Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
@@ -114,7 +118,7 @@ namespace Adp.YnabClient
                 .InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).PermitReentry(Trigger.SetDefaultAccount).Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).OnEntryFrom(
                     setDefaultAccountTrigger,
                     replyInfo => messageSender.SendOptions(replyInfo,
-                        "Select default account",
+                        "Select account for adding transaction. You can easy change it later",
                         account.DicAccounts[account.DicAccounts.Keys.First(item => item.Name == dbUser.DefaultYnabAccount.Budget)].Select(item => item.Name).ToList())).Permit(Trigger.SetReady, State.Ready)
                 .Permit(Trigger.StartAuth, State.Authorizing).Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
@@ -124,17 +128,15 @@ namespace Adp.YnabClient
             machine.Configure(State.EnteringDefaultBudget).InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnDefaultBudget(replyInfo, message))
                 .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions))
                 .InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo))
-                .OnEntryFrom(setDefaultBudgetTrigger, replyInfo => messageSender.SendOptions(replyInfo, "Select default budget", account.DicAccounts.Keys.Select(item => item.Name).ToList()))
+                .OnEntryFrom(setDefaultBudgetTrigger,
+                    replyInfo => messageSender.SendOptions(replyInfo, "Select budget for adding transaction. You can easy change it later", account.DicAccounts.Keys.Select(item => item.Name).ToList()))
                 .PermitReentry(Trigger.SetDefaultBudget).Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount).Permit(Trigger.StartAuth, State.Authorizing)
                 .Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
         private void SetupStateAuthorizing()
         {
-            var pleaseAuthorize = $"1. <a href=\"{oauth.GetAuthLink()}\">Please authorize bot</a>" +
-                                  Environment.NewLine +
-                                  "2. When you will be redirected back to telegram" + Environment.NewLine +
-                                  "3. From telegram chat click <strong>Start</strong> button";
+            var pleaseAuthorize = $"<a href=\"{oauth.GetAuthLink()}\">Please authorize bot</a> and click Start button after your return back to telegram";
 
             machine.Configure(State.Authorizing).InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnAuthCode(replyInfo, message))
                 .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions))
@@ -229,23 +231,21 @@ namespace Adp.YnabClient
 
         private void OnEnteringTransaction(in ReplyInfo replyInfo, string transaction)
         {
-            var regex = Regex.Match(transaction, @"(\d{1,2}\.\d{1,2} )?(.*) (-{0,1}\d*,*\d*)");
+            transaction = transaction.Replace(".", ",");
+            var regex = Regex.Match(transaction, @"(.*) (-{0,1}\d*,*\d*)");
 
-            if (regex.Groups.Count == 1)
+            if (regex.Groups.Count != 3)
             {
                 messageSender.SendMessage(replyInfo,
-                    $"Cant parse transaction. Example transaction at 21 October: {Environment.NewLine}21.10 Car 15999,99{Environment.NewLine}Or today transaction{Environment.NewLine}Food 19,47");
+                    $"Cant parse transaction{Environment.NewLine}{transactionHelp}");
                 return;
             }
 
-            var date = regex.Groups[1].Value;
-
-            var transactionDate = string.IsNullOrEmpty(date) ? DateTime.Today : DateTime.Parse($"{date}.{DateTime.Today.Year}");
-            var sum = Convert.ToDouble(regex.Groups[3].Value);
-            var payeeName = regex.Groups[2].Value;
+            var sum = Convert.ToDouble(regex.Groups[2].Value, CultureInfo.InvariantCulture);
+            var payeeName = regex.Groups[1].Value;
 
             var result = account.AddTransactions(
-                new List<Transaction> {new Transaction(string.Empty, transactionDate, sum, null, 0, CreateId(), payeeName, dbUser.DefaultYnabAccount.Budget, dbUser.DefaultYnabAccount.Account)}, AccessToken);
+                new List<Transaction> {new Transaction(string.Empty, DateTime.Today, sum, null, 0, CreateId(), payeeName, dbUser.DefaultYnabAccount.Budget, dbUser.DefaultYnabAccount.Account)}, AccessToken);
 
             messageSender.SendMessage(replyInfo, result);
         }

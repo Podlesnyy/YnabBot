@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -49,7 +50,7 @@ namespace Adp.YnabClient
             switch (message)
             {
                 case "/start":
-                    messageSender.SendMessage(replyInfo, "Welcome to bot for YNAB!");
+                    messageSender.SendMessage(replyInfo, "Welcome to bot for YNAB!" + Environment.NewLine + "You have to authorize the bot with the /auth command, before you start adding transactions");
                     break;
                 case "/auth":
                     GetUser(replyInfo).AuthCommand(replyInfo);
@@ -78,7 +79,8 @@ namespace Adp.YnabClient
             if (dbUser != null)
             {
                 dicYnabUsers.Remove(replyInfo.UserId);
-                dbContext.Remove(dbUser);
+                dbContext.Users.Remove(dbUser);
+                users.Remove(dbUser);
                 dbContext.SaveChanges();
             }
 
