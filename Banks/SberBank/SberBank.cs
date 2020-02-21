@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using Adp.Banks.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace Adp.Banks.SberBank
 {
@@ -20,14 +21,11 @@ namespace Adp.Banks.SberBank
 
         public List<Transaction> Parse(string fileContent)
         {
-            //Тип карты; Номер карты; Дата совершения операции; Дата обработки операции; Код авторизации; Тип операции; Город совершения операции; Страна совершения операции; Описание; Валюта операции; Сумма в валюте операции; Сумма в валюте счета;
-            //Основная; *3325; 06.11.2019; 06.11.2019; 216156; 1; Moscow; RUS; Зачисление зарплаты; ; ; 36683,54;
             var ret = new List<Transaction>();
-            var csv = new CsvReader(new StringReader(fileContent));
-            csv.Configuration.CultureInfo = RussianCi;
-            csv.Configuration.Delimiter = ";";
-            csv.Configuration.HasHeaderRecord = true;
-            csv.Configuration.BadDataFound = null;
+
+            var config = new CsvConfiguration(RussianCi) { Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null };
+            var csv = new CsvReader(new StringReader(fileContent), config);
+
             csv.Read();
             while (csv.Read())
             {

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using Adp.Banks.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace Adp.Banks.Tinkoff
 {
@@ -21,13 +22,10 @@ namespace Adp.Banks.Tinkoff
         public List<Transaction> Parse(string fileContent)
         {
             var ret = new List<Transaction>();
-            var csv = new CsvReader(new StringReader(fileContent));
-            csv.Configuration.CultureInfo = RussianCi;
-            csv.Configuration.Delimiter = ";";
-            csv.Configuration.HasHeaderRecord = true;
-            csv.Configuration.BadDataFound = null;
-            csv.Read();
+            var config = new CsvConfiguration(RussianCi) { Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null };
+            var csv = new CsvReader(new StringReader(fileContent), config);
 
+            csv.Read();
             while (csv.Read())
             {
                 var status = csv.GetField<string>(3);

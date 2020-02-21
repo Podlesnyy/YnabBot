@@ -35,7 +35,7 @@ namespace Adp.YnabClient.Ynab
 
         public void AddTransactions(IReadOnlyCollection<Transaction> transactions)
         {
-            progress.AppendLine($"Handling {transactions.Count} transactions at budget {budget.Name} account {account.Name}");
+            progress.AppendLine($"Added {transactions.Count} transactions for {budget.Name}/{account.Name}");
             transactionSinceOldest = GetTransactionSinceDate(transactions.Min(item => item.Date));
 
             foreach (var transaction in transactions)
@@ -43,17 +43,17 @@ namespace Adp.YnabClient.Ynab
 
             if (updateTransactions.Any())
             {
-                logger.Trace("Updated transactions: " + JsonConvert.SerializeObject(updateTransactions, Formatting.Indented));
+                logger.Trace("Updated: " + JsonConvert.SerializeObject(updateTransactions, Formatting.Indented));
                 ynabApi.Transactions.UpdateTransactions(budget.Id.ToString(), new UpdateTransactionsWrapper(updateTransactions));
-                progress.AppendLine($"Updated {updateTransactions.Count} transactions");
+                progress.AppendLine($"Updated: {updateTransactions.Count}");
             }
 
             if (!saveTransactions.Any())
                 return;
 
-            logger.Trace("New transactions: " + JsonConvert.SerializeObject(saveTransactions, Formatting.Indented));
+            logger.Trace("New: " + JsonConvert.SerializeObject(saveTransactions, Formatting.Indented));
             ynabApi.Transactions.CreateTransaction(budget.Id.ToString(), new SaveTransactionsWrapper(null, saveTransactions));
-            progress.AppendLine($"Added {saveTransactions.Count} new transactions");
+            progress.AppendLine($"New: {saveTransactions.Count}");
         }
 
         private void AddTransaction(Transaction transaction)

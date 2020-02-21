@@ -13,20 +13,20 @@ namespace Adp.YnabClient.Ynab
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         private readonly object objLock = new object();
-        private readonly API ynabApi;
 
         public Account(string accessToken)
         {
             logger.Info("Init YNAB API");
-            ynabApi = new API(accessToken);
+            
         }
 
         public Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>> DicAccounts { get; private set; } = new Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>>();
 
-        public string AddTransactions(IEnumerable<Transaction> transactions)
+        public string AddTransactions(IEnumerable<Transaction> transactions, string accessToken)
         {
             lock (objLock)
             {
+                var ynabApi = new API(accessToken);
                 var ret = new StringBuilder();
                 var grTrans = transactions.GroupBy(item => (Budget: item.YnabBudget, Account: item.YnabAccount));
                 foreach (var grTran in grTrans)
@@ -55,9 +55,11 @@ namespace Adp.YnabClient.Ynab
             }
         }
 
-        internal void LoadBudgets()
+        internal void LoadBudgets(string accessToken)
         {
             logger.Info("Loading accounts");
+
+            var ynabApi = new API(accessToken);
 
             lock (objLock)
             {

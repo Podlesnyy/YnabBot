@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace Adp.Banks.AlfaBank
 {
@@ -22,15 +23,13 @@ namespace Adp.Banks.AlfaBank
         public List<Transaction> Parse(string fileContent)
         {
             var ret = new List<Transaction>();
-            var csv = new CsvReader(new StringReader(fileContent));
-            csv.Configuration.CultureInfo = RussianCi;
-            csv.Configuration.Delimiter = ";";
-            csv.Configuration.HasHeaderRecord = true;
-            csv.Configuration.BadDataFound = null;
+
+            var config = new CsvConfiguration(RussianCi) {Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null};
+            var csv = new CsvReader(new StringReader(fileContent), config);
+
             csv.Read();
             while (csv.Read())
             {
-                //  Счёт кредитной карты; 40817810206230046528; RUR; 13.11.19; CBPP15; Выплата Cash Back Подлесный Андрей Дмитриевич за 01.10.19 - 31.10.19 по World -MasterCard Credit,  в соотв. Приказ №952 01.12.16, Осн.Расчёт; 548,57; 0;
                 var idField = csv.GetField<string>(4);
                 if (idField == "CRRR#U1704091501")
                     continue;

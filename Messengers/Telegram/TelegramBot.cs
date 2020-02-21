@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using NLog;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Adp.Messengers.Telegram
@@ -31,7 +32,6 @@ namespace Adp.Messengers.Telegram
             var useProxy = configuration.GetValue<bool>("YNABBOT_PROXY_USE");
             logger.Info($"Use proxy = {useProxy}");
             var token = configuration.GetValue<string>("YNABBOT_TELEGRAM_TOKEN");
-            // useProxy = false;
             if (useProxy)
             {
                 var host = configuration.GetValue<string>("YNABBOT_PROXY_HOST");
@@ -77,7 +77,7 @@ namespace Adp.Messengers.Telegram
                 if (string.IsNullOrEmpty(message))
                     return;
 
-                await botClient.SendTextMessageAsync(Convert.ToInt64(replyInfo.ChatId), message, replyToMessageId: Convert.ToInt32(replyInfo.MessageId), replyMarkup: new ReplyKeyboardRemove());
+                await botClient.SendTextMessageAsync(Convert.ToInt64(replyInfo.ChatId), message, replyToMessageId: Convert.ToInt32(replyInfo.MessageId), replyMarkup: new ReplyKeyboardRemove(), parseMode:ParseMode.Html);
             }
             catch (Exception e)
             {

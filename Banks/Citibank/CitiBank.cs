@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using Adp.Banks.Interfaces;
 using CsvHelper;
+using CsvHelper.Configuration;
 
 namespace Adp.Banks.Citibank
 {
@@ -22,12 +23,9 @@ namespace Adp.Banks.Citibank
         public List<Transaction> Parse(string fileContent)
         {
             var transofrm = fileContent.Replace("\",\"", ";").Replace("\"", string.Empty).Replace("'", string.Empty).Replace(Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble()), string.Empty);
+            var config = new CsvConfiguration(RussianCi) {Delimiter = ";", HasHeaderRecord = false, BadDataFound = null};
+            var csv = new CsvReader(new StringReader(transofrm), config);
             var ret = new List<Transaction>();
-            var csv = new CsvReader(new StringReader(transofrm));
-            csv.Configuration.Delimiter = ";";
-            csv.Configuration.CultureInfo = RussianCi;
-            csv.Configuration.HasHeaderRecord = false;
-            csv.Configuration.BadDataFound = null;
             while (csv.Read())
             {
                 var schet = csv.GetField<string>(3);
