@@ -69,13 +69,6 @@ namespace Adp.YnabClient.Ynab
             if (updateTransaction != null)
             {
                 updateTransactions.Add(updateTransaction);
-                transactionSinceOldest.Data.Transactions.Add(new TransactionDetail(updateTransaction.Id,
-                    updateTransaction.Date,
-                    updateTransaction.Amount,
-                    updateTransaction.Memo,
-                    payeeName: updateTransaction.PayeeName,
-                    accountName: account.Name,
-                    subtransactions: new List<SubTransaction>()));
             }
             else
             {
@@ -83,14 +76,6 @@ namespace Adp.YnabClient.Ynab
                 saveTransaction.AccountId = account.Id;
 
                 saveTransactions.Add(saveTransaction);
-                transactionSinceOldest.Data.Transactions.Add(new TransactionDetail("Just saved",
-                    saveTransaction.Date,
-                    saveTransaction.Amount,
-                    saveTransaction.Memo,
-                    payeeName: saveTransaction.PayeeName,
-                    importId: saveTransaction.ImportId,
-                    accountName: account.Name,
-                    subtransactions: new List<SubTransaction>()));
             }
         }
 
