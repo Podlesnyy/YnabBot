@@ -33,7 +33,7 @@ namespace Adp.YnabClient
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> setReadyTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> startAuthTrigger;
 
-        private string transactionHelp = $"Example transaction:{Environment.NewLine}Apples 7,47";
+        private string transactionHelp = $"Example transaction:{Environment.NewLine}Apples 7.47";
 
         public User(IMessageSender messageSender, IDbSaver dbSaver, Oauth oauth)
         {
@@ -231,8 +231,8 @@ namespace Adp.YnabClient
 
         private void OnEnteringTransaction(in ReplyInfo replyInfo, string transaction)
         {
-            transaction = transaction.Replace(".", ",");
-            var regex = Regex.Match(transaction, @"(.*) (-{0,1}\d*,*\d*)");
+            transaction = transaction.Replace(",", ".");
+            var regex = Regex.Match(transaction, @"(.*) (-{0,1}\d*\.*\d*)");
 
             if (regex.Groups.Count != 3)
             {
