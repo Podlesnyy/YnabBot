@@ -1,3 +1,4 @@
+using Adp.YnabBotService.DockerEnv;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -12,7 +13,9 @@ namespace Adp.YnabBotService
 
         private static IHostBuilder CreateHostBuilder(string[] args)
         {
-            return Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, services) => services.AddHostedService<Worker>());
+            return Host.CreateDefaultBuilder(args).
+                ConfigureAppConfiguration((hostContext, configurationBuilder) => configurationBuilder.AddDockerEnv(@"d:\Projects\YnabBot\.env")).
+                ConfigureServices((hostContext, services) => services.AddHostedService<Worker>());
         }
     }
 }

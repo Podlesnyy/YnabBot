@@ -25,7 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Banks\AlfaBank\AlfaBank.csproj" />
+    <ProjectReference Include="..\Banks\Citibank\Citibank.csproj" />
     <ProjectReference Include="..\Banks\Interfaces\Interfaces.csproj" />
+    <ProjectReference Include="..\Banks\SberBank\SberBank.csproj" />
+    <ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj" />
     <ProjectReference Include="..\Messengers\Interfaces\Interfaces.csproj" />
     <ProjectReference Include="..\Messengers\Telegram\Telegram.csproj" />
     <ProjectReference Include="..\Persistent\Persistent.csproj" />
