@@ -5,12 +5,11 @@ using System.Linq;
 using System.Text;
 using Adp.Banks.Interfaces;
 using Adp.Messengers.Interfaces;
+using Adp.Persistent;
 using Adp.YnabClient.Ynab;
 using Domain;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using NLog;
-using Persistent;
 using YamlDotNet.Serialization;
 
 namespace Adp.YnabClient
@@ -19,25 +18,33 @@ namespace Adp.YnabClient
     {
         private readonly IBank[] banks;
         private readonly YnabDbContext dbContext;
+        private readonly Dictionary<string, User> dicYnabUsers = new Dictionary<string, User>();
         private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         private readonly IMessageSender messageSender;
-        private readonly Dictionary<string, User> dicYnabUsers = new Dictionary<string, User>();
-        private List<Domain.User> users;
-        private Oauth oauth;
+        private readonly Oauth oauth;
+        private readonly List<Domain.User> users;
 
-        
 
-        public MessageFromBotToYnabConverter(IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, Oauth oauth )
+        public MessageFromBotToYnabConverter(IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, Oauth oauth)
         {
             this.messageSender = messageSender;
             this.banks = banks;
             this.dbContext = dbContext;
 
             this.oauth = oauth;
-            users = dbContext.Users.Include(item => item.BankAccountToYnabAccounts).ThenInclude(item=>item.YnabAccount).Include(item=>item.DefaultYnabAccount).Include(item=>item.Access).ToList();
+            users = dbContext.Users.Include(item => item.BankAccountToYnabAccounts).
+                ThenInclude(item => item.YnabAccount).
+                Include(item => item.DefaultYnabAccount).
+                Include(item => item.Access).
+                ToList();
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+
+        public void Save()
+        {
+            dbContext.SaveChanges();
         }
 
         public void OnMessage(ReplyInfo replyInfo, string message)
@@ -53,7 +60,7 @@ namespace Adp.YnabClient
             switch (message)
             {
                 case "/start":
-                    messageSender.SendMessage(replyInfo, 
+                    messageSender.SendMessage(replyInfo,
                         $"Welcome to bot for YNAB!{Environment.NewLine}This bot is not officially supported by YNAB in any way. Use of this bot could introduce problems into your budget that YNAB, through its official support channels, will not be able to troubleshoot or fix. Please use at your own risk!{Environment.NewLine}You will acknowledge this by using the /auth command");
                     break;
                 case "/auth":
@@ -75,25 +82,6 @@ namespace Adp.YnabClient
                     GetUser(replyInfo).OnMessage(replyInfo, message);
                     break;
             }
-        }
-
-        private void RemoveUser(ReplyInfo replyInfo)
-        {
-            var dbUser = users.FirstOrDefault(user => user.MessengerUserId == replyInfo.UserId);
-            if (dbUser != null)
-            {
-                dicYnabUsers.Remove(replyInfo.UserId);
-                dbContext.Users.Remove(dbUser);
-                users.Remove(dbUser);
-                dbContext.SaveChanges();
-            }
-
-            SendByeByeMessage(replyInfo);
-        }
-
-        private void SendByeByeMessage(ReplyInfo replyInfo)
-        {
-            messageSender.SendMessage(replyInfo, "All your account information removed. Thank you for your time. See ya!");
         }
 
         public void OnFileMessage(ReplyInfo replyInfo, string fileName, MemoryStream fileContent)
@@ -119,6 +107,25 @@ namespace Adp.YnabClient
             messageSender.Start(this);
         }
 
+        private void RemoveUser(ReplyInfo replyInfo)
+        {
+            var dbUser = users.FirstOrDefault(user => user.MessengerUserId == replyInfo.UserId);
+            if (dbUser != null)
+            {
+                dicYnabUsers.Remove(replyInfo.UserId);
+                dbContext.Users.Remove(dbUser);
+                users.Remove(dbUser);
+                dbContext.SaveChanges();
+            }
+
+            SendByeByeMessage(replyInfo);
+        }
+
+        private void SendByeByeMessage(ReplyInfo replyInfo)
+        {
+            messageSender.SendMessage(replyInfo, "All your account information removed. Thank you for your time. See ya!");
+        }
+
         private List<Transaction> ParseFile(string fileName, MemoryStream stream)
         {
             string Content(string enc)
@@ -140,29 +147,27 @@ namespace Adp.YnabClient
 
         private User CreateAndInitUser(ReplyInfo replyInfo)
         {
-            var user = new User(messageSender, this, oauth );
+            var user = new User(messageSender, this, oauth);
             dicYnabUsers[replyInfo.UserId] = user;
 
             user.Init(replyInfo, GetDbUser(replyInfo.UserId));
             return user;
         }
 
-        private Domain.User GetDbUser( string messengerUserId )
+        private Domain.User GetDbUser(string messengerUserId)
         {
             var dbUser = users.FirstOrDefault(user => user.MessengerUserId == messengerUserId);
             if (dbUser != null) return dbUser;
 
-            dbUser = new Domain.User {MessengerUserId = messengerUserId, BankAccountToYnabAccounts = new List<BankAccountToYnabAccount>(), DefaultYnabAccount = new YnabAccount(), Access = new YnabAccess()};
+            dbUser = new Domain.User
+            {
+                MessengerUserId = messengerUserId, BankAccountToYnabAccounts = new List<BankAccountToYnabAccount>(), DefaultYnabAccount = new YnabAccount(), Access = new YnabAccess()
+            };
             dbContext.Add(dbUser);
-            
+
             dbContext.SaveChanges();
 
             return dbUser;
-        }
-
-        public void Save()
-        {
-            dbContext.SaveChanges();
         }
     }
 }

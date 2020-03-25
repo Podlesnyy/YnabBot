@@ -77,7 +77,11 @@ namespace Adp.Messengers.Telegram
                 if (string.IsNullOrEmpty(message))
                     return;
 
-                await botClient.SendTextMessageAsync(Convert.ToInt64(replyInfo.ChatId), message, replyToMessageId: Convert.ToInt32(replyInfo.MessageId), replyMarkup: new ReplyKeyboardRemove(), parseMode:ParseMode.Html);
+                await botClient.SendTextMessageAsync(Convert.ToInt64(replyInfo.ChatId),
+                    message,
+                    replyToMessageId: Convert.ToInt32(replyInfo.MessageId),
+                    replyMarkup: new ReplyKeyboardRemove(),
+                    parseMode: ParseMode.Html);
             }
             catch (Exception e)
             {

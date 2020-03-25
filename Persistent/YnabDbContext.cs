@@ -2,18 +2,19 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace Persistent
+namespace Adp.Persistent
 {
     public sealed class YnabDbContext : DbContext
     {
         private readonly IConfiguration configuration;
-        public DbSet<User> Users { get; set; }
 
         public YnabDbContext(IConfiguration configuration)
         {
             this.configuration = configuration;
             Database.EnsureCreated();
         }
+
+        public DbSet<User> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
@@ -9,11 +7,11 @@ namespace Adp.YnabClient.Ynab
 {
     public class Oauth
     {
+        private readonly string baseYnabUri;
+        private readonly HttpClient client = new HttpClient();
+        private readonly string redirectUri;
         private readonly string ynabClientId;
         private readonly string ynabClientSecret;
-        private readonly string baseYnabUri;
-        private readonly string redirectUri;
-        private readonly HttpClient client = new HttpClient();
 
         public Oauth(IConfiguration configuration)
         {
@@ -29,15 +27,15 @@ namespace Adp.YnabClient.Ynab
             return $"{baseYnabUri}authorize?client_id={ynabClientId}&redirect_uri={redirectUri}&response_type=code";
         }
 
-        public AccessTokenInfo GetAccessToken( string authCode )
+        public AccessTokenInfo GetAccessToken(string authCode)
         {
             var values = new Dictionary<string, string>
             {
-                { "client_id", ynabClientId},
-                { "client_secret", ynabClientSecret },
-                { "redirect_uri", redirectUri },
-                { "grant_type", "authorization_code" },
-                { "code", authCode }
+                {"client_id", ynabClientId},
+                {"client_secret", ynabClientSecret},
+                {"redirect_uri", redirectUri},
+                {"grant_type", "authorization_code"},
+                {"code", authCode}
             };
             var content = new FormUrlEncodedContent(values);
 
@@ -48,15 +46,9 @@ namespace Adp.YnabClient.Ynab
             return JsonConvert.DeserializeObject<AccessTokenInfo>(responseStr);
         }
 
-        public AccessTokenInfo GetRefreshedAccessToken(string refreshToken )
+        public AccessTokenInfo GetRefreshedAccessToken(string refreshToken)
         {
-            var values = new Dictionary<string, string>
-            {
-                { "client_id", ynabClientId},
-                { "client_secret", ynabClientSecret },
-                { "grant_type", "refresh_token" },
-                { "refresh_token", refreshToken }
-            };
+            var values = new Dictionary<string, string> {{"client_id", ynabClientId}, {"client_secret", ynabClientSecret}, {"grant_type", "refresh_token"}, {"refresh_token", refreshToken}};
             var content = new FormUrlEncodedContent(values);
 
             var authUrl = $"{baseYnabUri}token";
@@ -66,7 +58,7 @@ namespace Adp.YnabClient.Ynab
             return JsonConvert.DeserializeObject<AccessTokenInfo>(responseStr);
         }
 
-        public class AccessTokenInfo
+        public sealed class AccessTokenInfo
         {
             public string access_token { get; set; }
             public string token_type { get; set; }

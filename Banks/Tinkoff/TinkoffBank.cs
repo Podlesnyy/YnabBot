@@ -22,7 +22,7 @@ namespace Adp.Banks.Tinkoff
         public List<Transaction> Parse(string fileContent)
         {
             var ret = new List<Transaction>();
-            var config = new CsvConfiguration(RussianCi) { Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null };
+            var config = new CsvConfiguration(RussianCi) {Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null};
             var csv = new CsvReader(new StringReader(fileContent), config);
 
             csv.Read();

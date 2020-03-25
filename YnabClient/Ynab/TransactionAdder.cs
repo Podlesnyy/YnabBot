@@ -77,7 +77,7 @@ namespace Adp.YnabClient.Ynab
 
         private bool ExistTransactionWithNonEmptyPayeeName()
         {
-            return transactionsWithSameAmountAndDate.Any(item => !string.IsNullOrEmpty(item.PayeeName) && item.Memo == memo );
+            return transactionsWithSameAmountAndDate.Any(item => !string.IsNullOrEmpty(item.PayeeName) && item.Memo == memo);
         }
 
         private bool ExistTransactionWithImportIdInsideMemo()

@@ -33,7 +33,7 @@ namespace Adp.YnabClient
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> setReadyTrigger;
         private StateMachine<State, Trigger>.TriggerWithParameters<ReplyInfo> startAuthTrigger;
 
-        private string transactionHelp = $"Example transaction:{Environment.NewLine}Apples 7.47";
+        private readonly string transactionHelp = $"Example transaction:{Environment.NewLine}Apples 7.47";
 
         public User(IMessageSender messageSender, IDbSaver dbSaver, Oauth oauth)
         {
@@ -62,19 +62,6 @@ namespace Adp.YnabClient
             }
         }
 
-        private void RefreshToken()
-        {
-            var response = oauth.GetRefreshedAccessToken(dbUser.Access.RefreshToken);
-            dbUser.Access.AccessToken = response.access_token;
-            dbUser.Access.RefreshToken = response.refresh_token;
-            dbUser.Access.CreatedAt = UnixTimeStampToDateTime(response.created_at);
-            dbUser.Access.ExpiresIn = response.expires_in;
-            dbUser.Access.Scope = response.scope;
-            dbUser.Access.TokenType = response.token_type;
-
-            dbSaver.Save();
-        }
-
         public void AuthCommand(in ReplyInfo replyInfo)
         {
             machine.Fire(startAuthTrigger, replyInfo);
@@ -95,63 +82,136 @@ namespace Adp.YnabClient
             machine.Fire(onAddTransactionFromFileTrigger, replyInfo, transactions);
         }
 
+        private static DateTime UnixTimeStampToDateTime(int unixTimeStamp)
+        {
+            // Unix timestamp is seconds past epoch
+            var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            return dtDateTime;
+        }
+
+        public void Init(ReplyInfo replyInfo, Domain.User user)
+        {
+            dbUser = user;
+            machine.Fire(applyUserSettingsTrigger, replyInfo);
+        }
+
+        public void ListYnabAccountsCommand(ReplyInfo replyInfo)
+        {
+            machine.Fire(listAccounts, replyInfo);
+        }
+
+        public void AddBankAccounts(ReplyInfo replyInfo, IEnumerable<BankAccountToYnabAccount> listSynonyms)
+        {
+            dbUser.BankAccountToYnabAccounts.Clear();
+            dbUser.BankAccountToYnabAccounts.AddRange(listSynonyms);
+            dbSaver.Save();
+            ListBankAccountsCommand(replyInfo);
+        }
+
+        public void ListBankAccountsCommand(ReplyInfo replyInfo)
+        {
+            messageSender.SendMessage(replyInfo,
+                dbUser.BankAccountToYnabAccounts.Count == 0
+                    ? "You haven't any bank accounts linked to YNAB accounts "
+                    : string.Join(Environment.NewLine, dbUser.BankAccountToYnabAccounts.Select(item => $"{item.BankAccount} - {item.YnabAccount.Budget}\\{item.YnabAccount.Account}")));
+        }
+
+        private void RefreshToken()
+        {
+            var response = oauth.GetRefreshedAccessToken(dbUser.Access.RefreshToken);
+            dbUser.Access.AccessToken = response.access_token;
+            dbUser.Access.RefreshToken = response.refresh_token;
+            dbUser.Access.CreatedAt = UnixTimeStampToDateTime(response.created_at);
+            dbUser.Access.ExpiresIn = response.expires_in;
+            dbUser.Access.Scope = response.scope;
+            dbUser.Access.TokenType = response.token_type;
+
+            dbSaver.Save();
+        }
+
         private void SetupStateApplyingSettings()
         {
-            machine.Configure(State.ApplyingSettings).OnEntryFrom(applyUserSettingsTrigger, (replyInfo, _) => OnApplyUserSettings(replyInfo)).Permit(Trigger.Unknown, State.Unknown)
-                .Permit(Trigger.StartAuth, State.Authorizing).Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount)
-                .Permit(Trigger.SetReady, State.Ready);
+            machine.Configure(State.ApplyingSettings).
+                OnEntryFrom(applyUserSettingsTrigger, (replyInfo, _) => OnApplyUserSettings(replyInfo)).
+                Permit(Trigger.Unknown, State.Unknown).
+                Permit(Trigger.StartAuth, State.Authorizing).
+                Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
+                Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount).
+                Permit(Trigger.SetReady, State.Ready);
         }
 
         private void SetupStateReady()
         {
-            machine.Configure(State.Ready).InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnEnteringTransaction(replyInfo, message))
-                .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions))
-                .InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).OnEntryFrom(setReadyTrigger,
-                    (replyInfo, _) => messageSender.SendMessage(replyInfo, $"Congratulations!{Environment.NewLine}Now you can add transaction directly to your YNAB account {dbUser.DefaultYnabAccount.Budget}/{dbUser.DefaultYnabAccount.Account}{Environment.NewLine}{transactionHelp}"))
-                .Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).Permit(Trigger.StartAuth, State.Authorizing).Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
+            machine.Configure(State.Ready).
+                InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnEnteringTransaction(replyInfo, message)).
+                InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+                InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).
+                OnEntryFrom(setReadyTrigger,
+                    (replyInfo, _) => messageSender.SendMessage(replyInfo,
+                        $"Congratulations!{Environment.NewLine}Now you can add transaction directly to your YNAB account {dbUser.DefaultYnabAccount.Budget}/{dbUser.DefaultYnabAccount.Account}{Environment.NewLine}{transactionHelp}")).
+                Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
+                Permit(Trigger.StartAuth, State.Authorizing).
+                Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
         private void SetupStateEnteringDefaultAccount()
         {
-            machine.Configure(State.EnteringDefaultAccount).InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnDefaultAccount(replyInfo, message))
-                .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions))
-                .InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).PermitReentry(Trigger.SetDefaultAccount).Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).OnEntryFrom(
-                    setDefaultAccountTrigger,
+            machine.Configure(State.EnteringDefaultAccount).
+                InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnDefaultAccount(replyInfo, message)).
+                InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+                InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).
+                PermitReentry(Trigger.SetDefaultAccount).
+                Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
+                OnEntryFrom(setDefaultAccountTrigger,
                     replyInfo => messageSender.SendOptions(replyInfo,
                         "Select account for adding transaction. You can easy change it later",
-                        account.DicAccounts[account.DicAccounts.Keys.First(item => item.Name == dbUser.DefaultYnabAccount.Budget)].Select(item => item.Name).ToList())).Permit(Trigger.SetReady, State.Ready)
-                .Permit(Trigger.StartAuth, State.Authorizing).Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
+                        account.DicAccounts[account.DicAccounts.Keys.First(item => item.Name == dbUser.DefaultYnabAccount.Budget)].Select(item => item.Name).ToList())).
+                Permit(Trigger.SetReady, State.Ready).
+                Permit(Trigger.StartAuth, State.Authorizing).
+                Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
         private void SetupStateEnteringDefaultBudget()
         {
-            machine.Configure(State.EnteringDefaultBudget).InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnDefaultBudget(replyInfo, message))
-                .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions))
-                .InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo))
-                .OnEntryFrom(setDefaultBudgetTrigger,
-                    replyInfo => messageSender.SendOptions(replyInfo, "Select budget for adding transaction. You can easy change it later", account.DicAccounts.Keys.Select(item => item.Name).ToList()))
-                .PermitReentry(Trigger.SetDefaultBudget).Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount).Permit(Trigger.StartAuth, State.Authorizing)
-                .Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
+            machine.Configure(State.EnteringDefaultBudget).
+                InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnDefaultBudget(replyInfo, message)).
+                InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+                InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).
+                OnEntryFrom(setDefaultBudgetTrigger,
+                    replyInfo => messageSender.SendOptions(replyInfo,
+                        "Select budget for adding transaction. You can easy change it later",
+                        account.DicAccounts.Keys.Select(item => item.Name).ToList())).
+                PermitReentry(Trigger.SetDefaultBudget).
+                Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount).
+                Permit(Trigger.StartAuth, State.Authorizing).
+                Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
         private void SetupStateAuthorizing()
         {
             var pleaseAuthorize = $"<a href=\"{oauth.GetAuthLink()}\">Please authorize bot</a> and click Start button after your return back to telegram";
 
-            machine.Configure(State.Authorizing).InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnAuthCode(replyInfo, message))
-                .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions))
-                .InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, pleaseAuthorize)).OnEntryFrom(startAuthTrigger, replyInfo => messageSender.SendMessage(replyInfo, pleaseAuthorize))
-                .PermitReentry(Trigger.StartAuth).Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
+            machine.Configure(State.Authorizing).
+                InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnAuthCode(replyInfo, message)).
+                InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+                InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, pleaseAuthorize)).
+                OnEntryFrom(startAuthTrigger, replyInfo => messageSender.SendMessage(replyInfo, pleaseAuthorize)).
+                PermitReentry(Trigger.StartAuth).
+                Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
+                Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
         private void SetupStateUnknown()
         {
             const string youShouldRunSetupCommand = "At first you should run /auth command";
-            machine.Configure(State.Unknown).InternalTransition(onMessageTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand))
-                .InternalTransition(setDefaultBudgetTrigger, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand))
-                .InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand))
-                .InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).Permit(Trigger.StartAuth, State.Authorizing)
-                .Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
+            machine.Configure(State.Unknown).
+                InternalTransition(onMessageTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
+                InternalTransition(setDefaultBudgetTrigger, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
+                InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
+                InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
+                Permit(Trigger.StartAuth, State.Authorizing).
+                Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
         }
 
         private void SetupTriggers()
@@ -169,10 +229,10 @@ namespace Adp.YnabClient
         private void ShowAccountList(ReplyInfo replyInfo)
         {
             var ret = new StringBuilder();
-            foreach (var budget in account.DicAccounts)
+            foreach (var (budgetSummary, accounts) in account.DicAccounts)
             {
-                ret.AppendLine(budget.Key.Name);
-                foreach (var budgetAccount in budget.Value.OrderBy(item => item.Name)) ret.AppendLine($"----------------{budgetAccount.Name}");
+                ret.AppendLine(budgetSummary.Name);
+                foreach (var budgetAccount in accounts.OrderBy(item => item.Name)) ret.AppendLine($"----------------{budgetAccount.Name}");
             }
 
             messageSender.SendMessage(replyInfo, ret.ToString());
@@ -206,7 +266,7 @@ namespace Adp.YnabClient
                 return;
             }
 
-            if (!TryLoadBudgets(replyInfo, AccessToken))
+            if (!TryLoadBudgets(replyInfo))
             {
                 machine.Fire(Trigger.Unknown);
                 return;
@@ -236,16 +296,18 @@ namespace Adp.YnabClient
 
             if (regex.Groups.Count != 3)
             {
-                messageSender.SendMessage(replyInfo,
-                    $"Cant parse transaction{Environment.NewLine}{transactionHelp}");
+                messageSender.SendMessage(replyInfo, $"Cant parse transaction{Environment.NewLine}{transactionHelp}");
                 return;
             }
 
             var sum = Convert.ToDouble(regex.Groups[2].Value, CultureInfo.InvariantCulture);
             var payeeName = regex.Groups[1].Value;
 
-            var result = account.AddTransactions(
-                new List<Transaction> {new Transaction(string.Empty, DateTime.Today, sum, null, 0, CreateId(), payeeName, dbUser.DefaultYnabAccount.Budget, dbUser.DefaultYnabAccount.Account)}, AccessToken);
+            var result = account.AddTransactions(new List<Transaction>
+                {
+                    new Transaction(string.Empty, DateTime.Today, sum, null, 0, CreateId(), payeeName, dbUser.DefaultYnabAccount.Budget, dbUser.DefaultYnabAccount.Account)
+                },
+                AccessToken);
 
             messageSender.SendMessage(replyInfo, result);
         }
@@ -294,7 +356,7 @@ namespace Adp.YnabClient
         private void OnAuthCode(in ReplyInfo replyInfo, string authCode)
         {
             const string start = "/start ";
-            if (!authCode.StartsWith(start))
+            if (!authCode.StartsWith(start, StringComparison.Ordinal))
             {
                 messageSender.SendMessage(replyInfo, "Auth code parsing failed. Please try again");
                 machine.Fire(startAuthTrigger, replyInfo);
@@ -315,7 +377,7 @@ namespace Adp.YnabClient
 
                 dbSaver.Save();
 
-                if (!TryLoadBudgets(replyInfo, AccessToken))
+                if (!TryLoadBudgets(replyInfo))
                 {
                     machine.Fire(startAuthTrigger, replyInfo);
                     return;
@@ -331,17 +393,9 @@ namespace Adp.YnabClient
             }
         }
 
-        public static DateTime UnixTimeStampToDateTime(int unixTimeStamp)
+        private bool TryLoadBudgets(in ReplyInfo replyInfo)
         {
-            // Unix timestamp is seconds past epoch
-            var dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
-            return dtDateTime;
-        }
-
-        private bool TryLoadBudgets(in ReplyInfo replyInfo, string accessToken)
-        {
-            account = new Account(accessToken);
+            account = new Account();
             try
             {
                 account.LoadBudgets(AccessToken);
@@ -354,33 +408,6 @@ namespace Adp.YnabClient
             }
 
             return true;
-        }
-
-        public void Init(ReplyInfo replyInfo, Domain.User user)
-        {
-            dbUser = user;
-            machine.Fire(applyUserSettingsTrigger, replyInfo);
-        }
-
-        public void ListYnabAccountsCommand(ReplyInfo replyInfo)
-        {
-            machine.Fire(listAccounts, replyInfo);
-        }
-
-        public void AddBankAccounts(ReplyInfo replyInfo, IEnumerable<BankAccountToYnabAccount> listSynonyms)
-        {
-            dbUser.BankAccountToYnabAccounts.Clear();
-            dbUser.BankAccountToYnabAccounts.AddRange(listSynonyms);
-            dbSaver.Save();
-            ListBankAccountsCommand(replyInfo);
-        }
-
-        public void ListBankAccountsCommand(ReplyInfo replyInfo)
-        {
-            messageSender.SendMessage(replyInfo,
-                dbUser.BankAccountToYnabAccounts.Count == 0
-                    ? "You haven't any bank accounts linked to YNAB accounts "
-                    : string.Join(Environment.NewLine, dbUser.BankAccountToYnabAccounts.Select(item => $"{item.BankAccount} - {item.YnabAccount.Budget}\\{item.YnabAccount.Account}")));
         }
 
         private enum Trigger

@@ -14,10 +14,9 @@ namespace Adp.YnabClient.Ynab
 
         private readonly object objLock = new object();
 
-        public Account(string accessToken)
+        public Account()
         {
             logger.Info("Init YNAB API");
-            
         }
 
         public Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>> DicAccounts { get; private set; } = new Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>>();
