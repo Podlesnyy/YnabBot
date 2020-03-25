@@ -15,8 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.6.8" />
-    <PackageReference Include="Stateless" Version="4.4.0" />
+    <PackageReference Include="NLog" Version="4.7.0" />
+    <PackageReference Include="Stateless" Version="5.0.0" />
     <PackageReference Include="Telegram.Bot" Version="15.4.0" />
     <PackageReference Include="YamlDotNet" Version="8.1.0" />
     <PackageReference Include="YNAB.SDK" Version="1.2.0" />
