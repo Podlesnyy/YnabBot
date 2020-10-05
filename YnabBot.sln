@@ -17,17 +17,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Banks", "Banks", "{10AAE024
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Interfaces", "Banks\Interfaces\Interfaces.csproj", "{F3F8290C-0E13-4733-AF84-FDAB346681EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlfaBank", "Banks\AlfaBank\AlfaBank.csproj", "{FFB5CB6F-AFEA-44C6-9C2A-4B6F7D2A690E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AlfaBank", "Banks\AlfaBank\AlfaBank.csproj", "{FFB5CB6F-AFEA-44C6-9C2A-4B6F7D2A690E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SberBank", "Banks\SberBank\SberBank.csproj", "{D20B17B2-D71B-4E50-A99F-23EEB5B8EE26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SberBank", "Banks\SberBank\SberBank.csproj", "{D20B17B2-D71B-4E50-A99F-23EEB5B8EE26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tinkoff", "Banks\Tinkoff\Tinkoff.csproj", "{5236BA20-E490-4849-9F4F-50F5E1F352EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tinkoff", "Banks\Tinkoff\Tinkoff.csproj", "{5236BA20-E490-4849-9F4F-50F5E1F352EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Citibank", "Banks\Citibank\Citibank.csproj", "{4FC5CE51-D4EC-4DB7-910A-0F2943AB433D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Citibank", "Banks\Citibank\Citibank.csproj", "{4FC5CE51-D4EC-4DB7-910A-0F2943AB433D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{454CCD01-4FA7-4E14-A3F6-FA1A65FFA42B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{454CCD01-4FA7-4E14-A3F6-FA1A65FFA42B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persistent", "Persistent\Persistent.csproj", "{84BD391D-8E81-4E76-910F-8A86011AA7B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistent", "Persistent\Persistent.csproj", "{84BD391D-8E81-4E76-910F-8A86011AA7B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VTB", "Banks\VTB\VTB.csproj", "{CF918F95-FC1D-4504-875A-8D039F18DBE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +81,10 @@ Global
 		{84BD391D-8E81-4E76-910F-8A86011AA7B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84BD391D-8E81-4E76-910F-8A86011AA7B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84BD391D-8E81-4E76-910F-8A86011AA7B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF918F95-FC1D-4504-875A-8D039F18DBE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF918F95-FC1D-4504-875A-8D039F18DBE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF918F95-FC1D-4504-875A-8D039F18DBE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF918F95-FC1D-4504-875A-8D039F18DBE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -91,6 +97,7 @@ Global
 		{D20B17B2-D71B-4E50-A99F-23EEB5B8EE26} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
 		{5236BA20-E490-4849-9F4F-50F5E1F352EF} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
 		{4FC5CE51-D4EC-4DB7-910A-0F2943AB433D} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
+		{CF918F95-FC1D-4504-875A-8D039F18DBE5} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {79A08581-35E4-49D1-8172-358E6440F251}

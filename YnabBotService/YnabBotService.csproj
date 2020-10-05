@@ -30,6 +30,7 @@
     <ProjectReference Include="..\Banks\Interfaces\Interfaces.csproj" />
     <ProjectReference Include="..\Banks\SberBank\SberBank.csproj" />
     <ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj" />
+    <ProjectReference Include="..\Banks\VTB\VTB.csproj" />
     <ProjectReference Include="..\Messengers\Interfaces\Interfaces.csproj" />
     <ProjectReference Include="..\Messengers\Telegram\Telegram.csproj" />
     <ProjectReference Include="..\Persistent\Persistent.csproj" />
