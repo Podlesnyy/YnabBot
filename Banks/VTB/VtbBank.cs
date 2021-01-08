@@ -31,7 +31,7 @@ namespace Adp.Banks.VTB
             while (csv.Read())
             {
                 var status = csv.GetField<string>(8);
-                if (status != "Исполнено" || status != "В обработке" )
+                if (status != "Исполнено" && status != "В обработке" )
                     continue;
 
                 var schet = csv.GetField<string>(0).Substring(1);
