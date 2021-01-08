@@ -16,6 +16,7 @@ COPY ["YnabClient/YnabClient.csproj", "YnabClient/"]
 COPY ["Persistent/Persistent.csproj", "Persistent/"]
 COPY ["Banks/Citibank/Citibank.csproj", "Banks/Citibank/"]
 COPY ["Banks/Tinkoff/Tinkoff.csproj", "Banks/Tinkoff/"]
+COPY ["Banks/VTB/VTB.csproj", "Banks/VTB/"]
 RUN dotnet restore "YnabBotService/YnabBotService.csproj"
 COPY . .
 WORKDIR "/src/YnabBotService"
