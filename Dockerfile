@@ -1,22 +1,22 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
+FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
 WORKDIR /src
 COPY ["YnabBotService/YnabBotService.csproj", "YnabBotService/"]
 COPY ["Banks/AlfaBank/AlfaBank.csproj", "Banks/AlfaBank/"]
 COPY ["Banks/Interfaces/Interfaces.csproj", "Banks/Interfaces/"]
 COPY ["Messengers/Telegram/Telegram.csproj", "Messengers/Telegram/"]
 COPY ["Messengers/Interfaces/Interfaces.csproj", "Messengers/Interfaces/"]
-COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Banks/SberBank/SberBank.csproj", "Banks/SberBank/"]
 COPY ["YnabClient/YnabClient.csproj", "YnabClient/"]
 COPY ["Persistent/Persistent.csproj", "Persistent/"]
+COPY ["Domain/Domain.csproj", "Domain/"]
+COPY ["Banks/VTB/VTB.csproj", "Banks/VTB/"]
 COPY ["Banks/Citibank/Citibank.csproj", "Banks/Citibank/"]
 COPY ["Banks/Tinkoff/Tinkoff.csproj", "Banks/Tinkoff/"]
-COPY ["Banks/VTB/VTB.csproj", "Banks/VTB/"]
 RUN dotnet restore "YnabBotService/YnabBotService.csproj"
 COPY . .
 WORKDIR "/src/YnabBotService"
