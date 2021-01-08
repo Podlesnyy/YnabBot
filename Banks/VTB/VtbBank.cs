@@ -30,9 +30,8 @@ namespace Adp.Banks.VTB
             csv.Read();
             while (csv.Read())
             {
-                //'40817810225004062484;2020-10-05 14:27:18;2020-10-05;-99 000,00;RUR;-99 000,00;RUR;Перечисление денежных средств для приобретения ценных бумаг. Основной рынок. Субпозиция №10DZV9 (НДС не обл.);Исполнено
                 var status = csv.GetField<string>(8);
-                if (status != "Исполнено")
+                if (status != "Исполнено" || status != "В обработке" )
                     continue;
 
                 var schet = csv.GetField<string>(0).Substring(1);
