@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using System;
+using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -18,11 +19,11 @@ public sealed class YnabDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        var database = configuration.GetValue<string>("MYSQL_DATABASE");
-        var user = configuration.GetValue<string>("MYSQL_USER");
-        var password = configuration.GetValue<string>("MYSQL_PASSWORD");
+        var database = configuration["MYSQL_DATABASE"];
+        var user = configuration["MYSQL_USER"];
+        var password = configuration["MYSQL_PASSWORD"];
 
-        optionsBuilder.UseMySql($"server=127.0.0.1;UserId={user};Password={password};database={database};");
+        optionsBuilder.UseMySql($"server=127.0.0.1;UserId={user};Password={password};database={database};", new MySqlServerVersion(new Version(8, 0, 22)));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
