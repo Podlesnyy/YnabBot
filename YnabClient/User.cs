@@ -114,7 +114,7 @@ internal sealed class User
         messageSender.SendMessage(replyInfo,
             dbUser.BankAccountToYnabAccounts.Count == 0
                 ? "You haven't any bank accounts linked to YNAB accounts "
-                : string.Join(Environment.NewLine, dbUser.BankAccountToYnabAccounts.Select(item => $"{item.BankAccount} - {item.YnabAccount.Budget}\\{item.YnabAccount.Account}")));
+                : string.Join(Environment.NewLine, dbUser.BankAccountToYnabAccounts.Select(static item => $"{item.BankAccount} - {item.YnabAccount.Budget}\\{item.YnabAccount.Account}")));
     }
 
     private void RefreshToken()
@@ -144,8 +144,8 @@ internal sealed class User
     private void SetupStateReady()
     {
         machine.Configure(State.Ready).
-            InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnEnteringTransaction(replyInfo, message)).
-            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+            InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnEnteringTransaction(replyInfo, message)).
+            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, _) => OnAddTransactions(replyInfo, transactions)).
             InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).
             OnEntryFrom(setReadyTrigger,
                 (replyInfo, _) => messageSender.SendMessage(replyInfo,
@@ -158,15 +158,15 @@ internal sealed class User
     private void SetupStateEnteringDefaultAccount()
     {
         machine.Configure(State.EnteringDefaultAccount).
-            InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnDefaultAccount(replyInfo, message)).
-            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+            InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnDefaultAccount(replyInfo, message)).
+            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, _) => OnAddTransactions(replyInfo, transactions)).
             InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).
             PermitReentry(Trigger.SetDefaultAccount).
             Permit(Trigger.SetDefaultBudget, State.EnteringDefaultBudget).
             OnEntryFrom(setDefaultAccountTrigger,
                 replyInfo => messageSender.SendOptions(replyInfo,
                     "Select account for adding transaction. You can easy change it later",
-                    account.DicAccounts[account.DicAccounts.Keys.First(item => item.Name == dbUser.DefaultYnabAccount.Budget)].Select(item => item.Name).ToList())).
+                    account.DicAccounts[account.DicAccounts.Keys.First(item => item.Name == dbUser.DefaultYnabAccount.Budget)].Select(static item => item.Name).ToList())).
             Permit(Trigger.SetReady, State.Ready).
             Permit(Trigger.StartAuth, State.Authorizing).
             Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
@@ -175,13 +175,13 @@ internal sealed class User
     private void SetupStateEnteringDefaultBudget()
     {
         machine.Configure(State.EnteringDefaultBudget).
-            InternalTransition(onMessageTrigger, (replyInfo, message, __) => OnDefaultBudget(replyInfo, message)).
-            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+            InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnDefaultBudget(replyInfo, message)).
+            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, _) => OnAddTransactions(replyInfo, transactions)).
             InternalTransition(listAccounts, (replyInfo, _) => ShowAccountList(replyInfo)).
             OnEntryFrom(setDefaultBudgetTrigger,
                 replyInfo => messageSender.SendOptions(replyInfo,
                     "Select budget for adding transaction. You can easy change it later",
-                    account.DicAccounts.Keys.Select(item => item.Name).ToList())).
+                    account.DicAccounts.Keys.Select(static item => item.Name).ToList())).
             PermitReentry(Trigger.SetDefaultBudget).
             Permit(Trigger.SetDefaultAccount, State.EnteringDefaultAccount).
             Permit(Trigger.StartAuth, State.Authorizing).
@@ -194,7 +194,7 @@ internal sealed class User
 
         machine.Configure(State.Authorizing).
             InternalTransition(onMessageTrigger, (replyInfo, message, _) => OnAuthCode(replyInfo, message)).
-            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, __) => OnAddTransactions(replyInfo, transactions)).
+            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, transactions, _) => OnAddTransactions(replyInfo, transactions)).
             InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, pleaseAuthorize)).
             OnEntryFrom(startAuthTrigger, replyInfo => messageSender.SendMessage(replyInfo, pleaseAuthorize)).
             PermitReentry(Trigger.StartAuth).
@@ -206,10 +206,10 @@ internal sealed class User
     {
         const string youShouldRunSetupCommand = "At first you should run /auth command";
         machine.Configure(State.Unknown).
-            InternalTransition(onMessageTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
+            InternalTransition(onMessageTrigger, (replyInfo, _, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
             InternalTransition(setDefaultBudgetTrigger, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
             InternalTransition(listAccounts, (replyInfo, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
-            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, _, __) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
+            InternalTransition(onAddTransactionFromFileTrigger, (replyInfo, _, _) => messageSender.SendMessage(replyInfo, youShouldRunSetupCommand)).
             Permit(Trigger.StartAuth, State.Authorizing).
             Permit(Trigger.ApplyUserSettings, State.ApplyingSettings);
     }
@@ -232,7 +232,7 @@ internal sealed class User
         foreach (var (budgetSummary, accounts) in account.DicAccounts)
         {
             ret.AppendLine(budgetSummary.Name);
-            foreach (var budgetAccount in accounts.OrderBy(item => item.Name)) ret.AppendLine($"----------------{budgetAccount.Name}");
+            foreach (var budgetAccount in accounts.OrderBy(static item => item.Name)) ret.AppendLine($"----------------{budgetAccount.Name}");
         }
 
         messageSender.SendMessage(replyInfo, ret.ToString());

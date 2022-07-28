@@ -27,7 +27,7 @@ public sealed class YnabDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().HasMany(item => item.BankAccountToYnabAccounts).WithOne();
+        modelBuilder.Entity<User>().HasMany(static item => item.BankAccountToYnabAccounts).WithOne();
         base.OnModelCreating(modelBuilder);
     }
 }

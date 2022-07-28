@@ -18,6 +18,6 @@ public sealed class EnvProvider : ConfigurationProvider
         if (!File.Exists(envPath))
             return;
 
-        Data = File.ReadAllLines(envPath).Select(readAllLine => readAllLine.Split("=")).ToDictionary(item => item[0], item => item[1]);
+        Data = File.ReadAllLines(envPath).Select(static readAllLine => readAllLine.Split("=")).ToDictionary(static item => item[0], static item => item[1]);
     }
 }

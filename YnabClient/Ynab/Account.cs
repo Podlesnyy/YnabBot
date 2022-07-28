@@ -27,7 +27,7 @@ internal sealed class Account
         {
             var ynabApi = new API(accessToken);
             var ret = new StringBuilder();
-            var grTrans = transactions.GroupBy(item => (Budget: item.YnabBudget, Account: item.YnabAccount));
+            var grTrans = transactions.GroupBy(static item => (Budget: item.YnabBudget, Account: item.YnabAccount));
             foreach (var grTran in grTrans)
             {
                 var budget = DicAccounts.Keys.FirstOrDefault(item => item.Name == grTran.Key.Budget);
@@ -62,7 +62,7 @@ internal sealed class Account
 
         lock (objLock)
         {
-            DicAccounts = ynabApi.Budgets.GetBudgets().Data.Budgets.ToDictionary(item => item, item => ynabApi.Accounts.GetAccounts(item.Id.ToString()).Data.Accounts);
+            DicAccounts = ynabApi.Budgets.GetBudgets().Data.Budgets.ToDictionary(static item => item, item => ynabApi.Accounts.GetAccounts(item.Id.ToString()).Data.Accounts);
         }
     }
 }

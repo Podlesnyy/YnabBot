@@ -36,7 +36,7 @@ internal sealed class TransactionsAdder
     public void AddTransactions(IReadOnlyCollection<Transaction> transactions)
     {
         progress.AppendLine($"Added {transactions.Count} transactions for {budget.Name}/{account.Name}");
-        transactionSinceOldest = GetTransactionSinceDate(transactions.Min(item => item.Date));
+        transactionSinceOldest = GetTransactionSinceDate(transactions.Min(static item => item.Date));
 
         foreach (var transaction in transactions)
             AddTransaction(transaction);

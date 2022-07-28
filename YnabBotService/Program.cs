@@ -14,7 +14,7 @@ public static class Program
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
         return Host.CreateDefaultBuilder(args).
-            ConfigureAppConfiguration((hostContext, configurationBuilder) => configurationBuilder.AddDockerEnv(@"d:\Projects\YnabBot\.env")).
-            ConfigureServices((hostContext, services) => services.AddHostedService<Worker>());
+            ConfigureAppConfiguration(static (_, configurationBuilder) => configurationBuilder.AddDockerEnv(@"d:\Projects\YnabBot\.env")).
+            ConfigureServices(static (_, services) => services.AddHostedService<Worker>());
     }
 }

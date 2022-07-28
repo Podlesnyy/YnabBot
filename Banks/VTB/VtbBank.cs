@@ -23,7 +23,7 @@ public class VtbBank : IBank
         var config = new CsvConfiguration(RussianCi) {Delimiter = ";", CultureInfo = RussianCi, HasHeaderRecord = true, BadDataFound = null};
         fileContent = string.Join( "\r\n", fileContent.Split("\r\n").Skip(11) );
         var csv = new CsvReader(new StringReader(fileContent), config);
-            
+
         csv.Read();
         while (csv.Read())
         {
@@ -31,7 +31,7 @@ public class VtbBank : IBank
             if (status != "Исполнено" && status != "В обработке" )
                 continue;
 
-            var schet = csv.GetField<string>(0).Substring(1);
+            var schet = csv.GetField<string>(0)[1..];
             var date = csv.GetField<DateTime>(2).Date;
             var memo = csv.GetField<string>(7);
             var sum = -1 * csv.GetField<double>(3);

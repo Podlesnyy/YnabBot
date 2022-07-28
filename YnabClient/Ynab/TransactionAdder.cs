@@ -72,7 +72,7 @@ internal sealed class TransactionAdder
 
     private bool ExistTransactionWithNonEmptyPayeeName()
     {
-        return transactionsWithSameAmountAndDate.Any(item => !string.IsNullOrEmpty(item.PayeeName));
+        return transactionsWithSameAmountAndDate.Any(static item => !string.IsNullOrEmpty(item.PayeeName));
     }
 
     private bool ExistTransactionWithImportIdInsideMemo()
@@ -101,11 +101,11 @@ internal sealed class TransactionAdder
         if (str == null)
             return string.Empty;
 
-        return str.Length <= maxLength ? str : str.Substring(0, maxLength);
+        return str.Length <= maxLength ? str : str[..maxLength];
     }
 
     private TransactionDetail GetHoldTransaction()
     {
-        return transactionsWithSameAmountAndDate.FirstOrDefault(item => item.Id != null && item.ImportId == null && (hasTransactionId && !item.Memo.Contains(id) || !string.IsNullOrEmpty(payee)));
+        return transactionsWithSameAmountAndDate.FirstOrDefault(item => item.Id != null && item.ImportId == null && ((hasTransactionId && !item.Memo.Contains(id)) || !string.IsNullOrEmpty(payee)));
     }
 }

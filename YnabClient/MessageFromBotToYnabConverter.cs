@@ -33,10 +33,10 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
         this.dbContext = dbContext;
 
         this.oauth = oauth;
-        users = dbContext.Users.Include(item => item.BankAccountToYnabAccounts).
-            ThenInclude(item => item.YnabAccount).
-            Include(item => item.DefaultYnabAccount).
-            Include(item => item.Access).
+        users = dbContext.Users.Include(static item => item.BankAccountToYnabAccounts).
+            ThenInclude(static item => item.YnabAccount).
+            Include(static item => item.DefaultYnabAccount).
+            Include(static item => item.Access).
             ToList();
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

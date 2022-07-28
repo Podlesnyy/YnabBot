@@ -58,7 +58,7 @@ public sealed class TelegramBot : IMessageSender
         try
         {
             logger.Info($"Reply with keyboard in chat {replyInfo.ChatId} message: {string.Join(";", options)} on {replyInfo.MessageId}");
-            var rkm = new ReplyKeyboardMarkup {Keyboard = options.Select(item => new KeyboardButton[] {item}).ToArray()};
+            var rkm = new ReplyKeyboardMarkup {Keyboard = options.Select(static item => new KeyboardButton[] {item}).ToArray()};
 
             await botClient.SendTextMessageAsync(Convert.ToInt64(replyInfo.ChatId), message, replyMarkup: rkm, replyToMessageId: Convert.ToInt32(replyInfo.MessageId));
         }
