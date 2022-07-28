@@ -312,10 +312,7 @@ internal sealed class User
         messageSender.SendMessage(replyInfo, result);
     }
 
-    private static string CreateId()
-    {
-        return "bot_" + DateTime.UtcNow.ToString("yyyyMMddHHmmssfffffff");
-    }
+    private static string CreateId() => "bot_" + DateTime.UtcNow.ToString("yyyyMMddHHmmssfffffff");
 
     private void OnDefaultAccount(in ReplyInfo replyInfo, string accountName)
     {

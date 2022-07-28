@@ -12,10 +12,7 @@ public class TinkoffBank : IBank
 {
     private static readonly CultureInfo RussianCi = new CultureInfo("ru");
 
-    public bool IsItYour(string fileName)
-    {
-        return fileName.Contains("operations");
-    }
+    public bool IsItYour(string fileName) => fileName.Contains("operations");
 
     public string FileEncoding => "windows-1251";
 

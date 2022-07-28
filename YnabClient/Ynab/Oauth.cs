@@ -22,10 +22,7 @@ public class Oauth
         baseYnabUri = "https://app.youneedabudget.com/oauth/";
     }
 
-    public string GetAuthLink()
-    {
-        return $"{baseYnabUri}authorize?client_id={ynabClientId}&redirect_uri={redirectUri}&response_type=code";
-    }
+    public string GetAuthLink() => $"{baseYnabUri}authorize?client_id={ynabClientId}&redirect_uri={redirectUri}&response_type=code";
 
     public AccessTokenInfo GetAccessToken(string authCode)
     {

@@ -13,10 +13,7 @@ public class CitiBank : IBank
 {
     private static readonly CultureInfo RussianCi = new CultureInfo("ru");
 
-    public bool IsItYour(string fileName)
-    {
-        return fileName.Contains("ACCT_038");
-    }
+    public bool IsItYour(string fileName) => fileName.Contains("ACCT_038");
 
     public string FileEncoding => "utf-8";
 

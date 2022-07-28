@@ -34,10 +34,7 @@ internal sealed class TransactionAdder
         logger.Trace("Old transaction with same amount and same date: " + JsonConvert.SerializeObject(transactionsWithSameAmountAndDate, Formatting.Indented));
     }
 
-    public bool IsAddBefore()
-    {
-        return ExistTransactionWithSameImportId() || ExistTransactionWithImportIdInsideMemo() || ExistTransactionWithNonEmptyPayeeName() || ExistTransactionWithEmptyImportIdAndTheSameMemo();
-    }
+    public bool IsAddBefore() => ExistTransactionWithSameImportId() || ExistTransactionWithImportIdInsideMemo() || ExistTransactionWithNonEmptyPayeeName() || ExistTransactionWithEmptyImportIdAndTheSameMemo();
 
     public UpdateTransaction GetUpdateTransaction()
     {
@@ -58,9 +55,8 @@ internal sealed class TransactionAdder
             UpdateTransaction.FlagColorEnum.Purple);
     }
 
-    public SaveTransaction GetSaveTransaction()
-    {
-        return new SaveTransaction(default,
+    public SaveTransaction GetSaveTransaction() =>
+        new SaveTransaction(default,
             date,
             amount,
             payeeName: payee,
@@ -68,7 +64,6 @@ internal sealed class TransactionAdder
             approved: hasTransactionId,
             flagColor: hasTransactionId ? SaveTransaction.FlagColorEnum.Orange : SaveTransaction.FlagColorEnum.Red,
             importId: hasTransactionId ? id : null);
-    }
 
     private bool ExistTransactionWithEmptyImportIdAndTheSameMemo()
     {
@@ -90,10 +85,7 @@ internal sealed class TransactionAdder
         return transactionsWithSameAmountAndDate.Any(item => item.ImportId != null && item.ImportId == id);
     }
 
-    private static int GetAmount(double transactionAmount)
-    {
-        return (int) (-1000 * transactionAmount);
-    }
+    private static int GetAmount(double transactionAmount) => (int) (-1000 * transactionAmount);
 
     private string GetPayee(string transactionPayee)
     {
@@ -102,10 +94,7 @@ internal sealed class TransactionAdder
         return TruncateString(ret, 50);
     }
 
-    private static string GetMemo(string transactionMemo)
-    {
-        return TruncateString(transactionMemo, 200);
-    }
+    private static string GetMemo(string transactionMemo) => TruncateString(transactionMemo, 200);
 
     private static string TruncateString(string str, int maxLength)
     {

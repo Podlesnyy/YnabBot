@@ -11,8 +11,5 @@ public sealed class ConfigurationSource : IConfigurationSource
         this.envPath = envPath;
     }
 
-    public IConfigurationProvider Build(IConfigurationBuilder builder)
-    {
-        return new EnvProvider(envPath);
-    }
+    public IConfigurationProvider Build(IConfigurationBuilder builder) => new EnvProvider(envPath);
 }

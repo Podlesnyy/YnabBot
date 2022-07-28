@@ -12,10 +12,7 @@ public class SberBank : IBank
 {
     private static readonly CultureInfo RussianCi = new CultureInfo("ru");
 
-    public bool IsItYour(string fileName)
-    {
-        return fileName.Replace("_", " ").Contains("Операции по карте ");
-    }
+    public bool IsItYour(string fileName) => fileName.Replace("_", " ").Contains("Операции по карте ");
 
     public string FileEncoding => "utf-8";
 

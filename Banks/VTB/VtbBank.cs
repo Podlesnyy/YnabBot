@@ -13,10 +13,7 @@ public class VtbBank : IBank
 {
     private static readonly CultureInfo RussianCi = new CultureInfo("ru");
 
-    public bool IsItYour(string fileName)
-    {
-        return fileName.Contains("details");
-    }
+    public bool IsItYour(string fileName) => fileName.Contains("details");
 
     public string FileEncoding => "windows-1251";
 

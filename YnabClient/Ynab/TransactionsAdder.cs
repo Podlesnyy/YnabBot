@@ -79,8 +79,5 @@ internal sealed class TransactionsAdder
         }
     }
 
-    private TransactionsResponse GetTransactionSinceDate(DateTime date)
-    {
-        return ynabApi.Transactions.GetTransactionsByAccount(budget.Id.ToString(), account.Id.ToString(), date);
-    }
+    private TransactionsResponse GetTransactionSinceDate(DateTime date) => ynabApi.Transactions.GetTransactionsByAccount(budget.Id.ToString(), account.Id.ToString(), date);
 }

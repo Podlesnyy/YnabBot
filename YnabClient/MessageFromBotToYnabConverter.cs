@@ -140,10 +140,7 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
         return new List<Transaction>();
     }
 
-    private User GetUser(ReplyInfo replyInfo)
-    {
-        return dicYnabUsers.ContainsKey(replyInfo.UserId) ? dicYnabUsers[replyInfo.UserId] : CreateAndInitUser(replyInfo);
-    }
+    private User GetUser(ReplyInfo replyInfo) => dicYnabUsers.ContainsKey(replyInfo.UserId) ? dicYnabUsers[replyInfo.UserId] : CreateAndInitUser(replyInfo);
 
     private User CreateAndInitUser(ReplyInfo replyInfo)
     {
