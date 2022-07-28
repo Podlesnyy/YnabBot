@@ -1,7 +1,6 @@
-﻿namespace Adp.YnabClient
+﻿namespace Adp.YnabClient;
+
+public interface IDbSaver
 {
-    public interface IDbSaver
-    {
-        void Save();
-    }
+    void Save();
 }

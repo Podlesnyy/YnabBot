@@ -1,9 +1,8 @@
-﻿namespace Domain
+﻿namespace Domain;
+
+public class BankAccountToYnabAccount
 {
-    public class BankAccountToYnabAccount
-    {
-        public int Id { get; set; }
-        public string BankAccount { get; set; }
-        public YnabAccount YnabAccount { get; set; }
-    }
+    public int Id { get; set; }
+    public string BankAccount { get; set; }
+    public YnabAccount YnabAccount { get; set; }
 }

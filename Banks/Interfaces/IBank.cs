@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace Adp.Banks.Interfaces
+namespace Adp.Banks.Interfaces;
+
+public interface IBank
 {
-    public interface IBank
-    {
-        string FileEncoding { get; }
-        bool IsItYour(string fileName);
-        List<Transaction> Parse(string fileContent);
-    }
+    string FileEncoding { get; }
+    bool IsItYour(string fileName);
+    List<Transaction> Parse(string fileContent);
 }

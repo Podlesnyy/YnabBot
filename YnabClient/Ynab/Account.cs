@@ -6,64 +6,63 @@ using NLog;
 using YNAB.SDK;
 using YNAB.SDK.Model;
 
-namespace Adp.YnabClient.Ynab
+namespace Adp.YnabClient.Ynab;
+
+internal sealed class Account
 {
-    internal sealed class Account
+    private readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+    private readonly object objLock = new object();
+
+    public Account()
     {
-        private readonly Logger logger = LogManager.GetCurrentClassLogger();
+        logger.Info("Init YNAB API");
+    }
 
-        private readonly object objLock = new object();
+    public Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>> DicAccounts { get; private set; } = new Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>>();
 
-        public Account()
+    public string AddTransactions(IEnumerable<Transaction> transactions, string accessToken)
+    {
+        lock (objLock)
         {
-            logger.Info("Init YNAB API");
-        }
-
-        public Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>> DicAccounts { get; private set; } = new Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>>();
-
-        public string AddTransactions(IEnumerable<Transaction> transactions, string accessToken)
-        {
-            lock (objLock)
+            var ynabApi = new API(accessToken);
+            var ret = new StringBuilder();
+            var grTrans = transactions.GroupBy(item => (Budget: item.YnabBudget, Account: item.YnabAccount));
+            foreach (var grTran in grTrans)
             {
-                var ynabApi = new API(accessToken);
-                var ret = new StringBuilder();
-                var grTrans = transactions.GroupBy(item => (Budget: item.YnabBudget, Account: item.YnabAccount));
-                foreach (var grTran in grTrans)
+                var budget = DicAccounts.Keys.FirstOrDefault(item => item.Name == grTran.Key.Budget);
+                if (budget == null)
                 {
-                    var budget = DicAccounts.Keys.FirstOrDefault(item => item.Name == grTran.Key.Budget);
-                    if (budget == null)
-                    {
-                        ret.AppendLine("Cant find budget with name " + grTran.Key.Budget);
-                        continue;
-                    }
-
-                    var account = DicAccounts[budget].FirstOrDefault(item => item.Name == grTran.Key.Account);
-
-                    if (account == null)
-                    {
-                        ret.AppendLine("Cant find account with name " + grTran.Key.Account + " at budget " + grTran.Key.Budget);
-                        continue;
-                    }
-
-                    var ynabAccountTransactionAdder = new TransactionsAdder(ynabApi, budget, account);
-                    ynabAccountTransactionAdder.AddTransactions(grTran.ToList());
-                    ret.AppendLine(ynabAccountTransactionAdder.Result);
+                    ret.AppendLine("Cant find budget with name " + grTran.Key.Budget);
+                    continue;
                 }
 
-                return ret.ToString();
+                var account = DicAccounts[budget].FirstOrDefault(item => item.Name == grTran.Key.Account);
+
+                if (account == null)
+                {
+                    ret.AppendLine("Cant find account with name " + grTran.Key.Account + " at budget " + grTran.Key.Budget);
+                    continue;
+                }
+
+                var ynabAccountTransactionAdder = new TransactionsAdder(ynabApi, budget, account);
+                ynabAccountTransactionAdder.AddTransactions(grTran.ToList());
+                ret.AppendLine(ynabAccountTransactionAdder.Result);
             }
+
+            return ret.ToString();
         }
+    }
 
-        internal void LoadBudgets(string accessToken)
+    internal void LoadBudgets(string accessToken)
+    {
+        logger.Info("Loading accounts");
+
+        var ynabApi = new API(accessToken);
+
+        lock (objLock)
         {
-            logger.Info("Loading accounts");
-
-            var ynabApi = new API(accessToken);
-
-            lock (objLock)
-            {
-                DicAccounts = ynabApi.Budgets.GetBudgets().Data.Budgets.ToDictionary(item => item, item => ynabApi.Accounts.GetAccounts(item.Id.ToString()).Data.Accounts);
-            }
+            DicAccounts = ynabApi.Budgets.GetBudgets().Data.Budgets.ToDictionary(item => item, item => ynabApi.Accounts.GetAccounts(item.Id.ToString()).Data.Accounts);
         }
     }
 }
