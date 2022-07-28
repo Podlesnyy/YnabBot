@@ -21,14 +21,14 @@ public class AlfaBank : IBank
     {
         var ret = new List<Transaction>();
 
-        var config = new CsvConfiguration(RussianCi) {Delimiter = ";", HasHeaderRecord = true, BadDataFound = null};
+        var config = new CsvConfiguration(RussianCi) { Delimiter = ";", HasHeaderRecord = true, BadDataFound = null };
         var csv = new CsvReader(new StringReader(fileContent), config);
 
         csv.Read();
         while (csv.Read())
         {
             var idField = csv.GetField<string>(4);
-            if (idField == "CRRR#U1704091501")
+            if (idField is "MG01#U1704091501" or "CRRR#U1704091501")
                 continue;
 
             var memo = csv.GetField<string>(5);
