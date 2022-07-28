@@ -11,7 +11,7 @@ namespace Adp.Banks.VTB;
 
 public class VtbBank : IBank
 {
-    private static readonly CultureInfo RussianCi = new CultureInfo("ru");
+    private static readonly CultureInfo RussianCi = new("ru");
 
     public bool IsItYour(string fileName) => fileName.Contains("details");
 

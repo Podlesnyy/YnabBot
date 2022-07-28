@@ -10,7 +10,7 @@ namespace Adp.Banks.SberBank;
 
 public class SberBank : IBank
 {
-    private static readonly CultureInfo RussianCi = new CultureInfo("ru");
+    private static readonly CultureInfo RussianCi = new("ru");
 
     public bool IsItYour(string fileName) => fileName.Replace("_", " ").Contains("Операции по карте ");
 

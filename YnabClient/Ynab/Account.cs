@@ -12,14 +12,14 @@ internal sealed class Account
 {
     private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
-    private readonly object objLock = new object();
+    private readonly object objLock = new();
 
     public Account()
     {
         logger.Info("Init YNAB API");
     }
 
-    public Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>> DicAccounts { get; private set; } = new Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>>();
+    public Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>> DicAccounts { get; private set; } = new();
 
     public string AddTransactions(IEnumerable<Transaction> transactions, string accessToken)
     {

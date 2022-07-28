@@ -18,7 +18,7 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
 {
     private readonly IBank[] banks;
     private readonly YnabDbContext dbContext;
-    private readonly Dictionary<string, User> dicYnabUsers = new Dictionary<string, User>();
+    private readonly Dictionary<string, User> dicYnabUsers = new();
     private readonly Logger logger = LogManager.GetCurrentClassLogger();
 
     private readonly IMessageSender messageSender;

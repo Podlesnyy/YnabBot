@@ -10,7 +10,7 @@ namespace Adp.Banks.Tinkoff;
 
 public class TinkoffBank : IBank
 {
-    private static readonly CultureInfo RussianCi = new CultureInfo("ru");
+    private static readonly CultureInfo RussianCi = new("ru");
 
     public bool IsItYour(string fileName) => fileName.Contains("operations");
 

@@ -8,7 +8,7 @@ namespace Adp.YnabClient.Ynab;
 public class Oauth
 {
     private readonly string baseYnabUri;
-    private readonly HttpClient client = new HttpClient();
+    private readonly HttpClient client = new();
     private readonly string redirectUri;
     private readonly string ynabClientId;
     private readonly string ynabClientSecret;

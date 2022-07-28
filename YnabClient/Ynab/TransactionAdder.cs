@@ -56,7 +56,7 @@ internal sealed class TransactionAdder
     }
 
     public SaveTransaction GetSaveTransaction() =>
-        new SaveTransaction(default,
+        new(default,
             date,
             amount,
             payeeName: payee,

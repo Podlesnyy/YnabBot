@@ -305,7 +305,7 @@ internal sealed class User
 
         var result = account.AddTransactions(new List<Transaction>
             {
-                new Transaction(string.Empty, DateTime.Today, sum, null, 0, CreateId(), payeeName, dbUser.DefaultYnabAccount.Budget, dbUser.DefaultYnabAccount.Account)
+                new(string.Empty, DateTime.Today, sum, null, 0, CreateId(), payeeName, dbUser.DefaultYnabAccount.Budget, dbUser.DefaultYnabAccount.Account)
             },
             AccessToken);
 

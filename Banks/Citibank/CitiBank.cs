@@ -11,7 +11,7 @@ namespace Adp.Banks.Citibank;
 
 public class CitiBank : IBank
 {
-    private static readonly CultureInfo RussianCi = new CultureInfo("ru");
+    private static readonly CultureInfo RussianCi = new("ru");
 
     public bool IsItYour(string fileName) => fileName.Contains("ACCT_038");
 
