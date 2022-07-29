@@ -17,7 +17,7 @@
   <ItemGroup>
     <PackageReference Include="NLog" Version="5.0.1" />
     <PackageReference Include="Stateless" Version="5.11.0" />
-    <PackageReference Include="Telegram.Bot" Version="15.7.1" />
+    <PackageReference Include="Telegram.Bot" Version="18.0.0" />
     <PackageReference Include="YamlDotNet" Version="12.0.0" />
     <PackageReference Include="YNAB.SDK" Version="1.2.0" />
   </ItemGroup>

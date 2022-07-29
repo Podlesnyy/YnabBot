@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using Adp.Messengers.Interfaces;
 using Microsoft.Extensions.Configuration;
 using NLog;
 using Telegram.Bot;
-using Telegram.Bot.Args;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -18,6 +21,7 @@ public sealed class TelegramBot : IMessageSender
     private readonly IConfiguration configuration;
     private readonly Logger logger = LogManager.GetCurrentClassLogger();
     private TelegramBotClient botClient;
+    private CancellationTokenSource cts;
     private IMessageReceiver messageReceiver;
 
     public TelegramBot(IConfiguration configuration)
@@ -28,6 +32,7 @@ public sealed class TelegramBot : IMessageSender
     public void Start(IMessageReceiver receiver)
     {
         logger.Info("Telegram bot initializing ");
+        messageReceiver = receiver;
 
         var useProxy = configuration.GetValue<bool>("YNABBOT_PROXY_USE");
         logger.Info($"Use proxy = {useProxy}");
@@ -38,7 +43,7 @@ public sealed class TelegramBot : IMessageSender
             logger.Info($"host = {host}");
             var port = configuration.GetValue<int>("YNABBOT_PROXY_PORT");
             logger.Info($"port = {port}");
-            botClient = new TelegramBotClient(token, new WebProxy(host, port));
+            botClient = new TelegramBotClient(token);
         }
         else
         {
@@ -48,17 +53,27 @@ public sealed class TelegramBot : IMessageSender
         var me = botClient.GetMeAsync().Result;
         logger.Info($"Hello, World! I am user {me.Id} and my name is {me.FirstName}.");
 
-        botClient.OnMessage += Bot_OnMessage;
-        messageReceiver = receiver;
-        botClient.StartReceiving();
+        cts = new CancellationTokenSource();
+
+        // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
+        var receiverOptions = new ReceiverOptions
+        {
+            AllowedUpdates = Array.Empty<UpdateType>(),
+            ThrowPendingUpdates = true
+        };
+
+        botClient.StartReceiving((_, update, _) => HandleUpdateAsync(update),
+            (_, exception, _) => PollingErrorHandler(exception),
+            receiverOptions,
+            cts.Token);
     }
 
-    public async void SendOptions(ReplyInfo replyInfo, string message, List<string> options)
+    public async Task SendOptions(ReplyInfo replyInfo, string message, List<string> options)
     {
         try
         {
             logger.Info($"Reply with keyboard in chat {replyInfo.ChatId} message: {string.Join(";", options)} on {replyInfo.MessageId}");
-            var rkm = new ReplyKeyboardMarkup {Keyboard = options.Select(static item => new KeyboardButton[] {item}).ToArray()};
+            var rkm = new ReplyKeyboardMarkup(options.Select(static item => new KeyboardButton[] { item }).ToArray() );
 
             await botClient.SendTextMessageAsync(Convert.ToInt64(replyInfo.ChatId), message, replyMarkup: rkm, replyToMessageId: Convert.ToInt32(replyInfo.MessageId));
         }
@@ -68,7 +83,35 @@ public sealed class TelegramBot : IMessageSender
         }
     }
 
-    public async void SendMessage(ReplyInfo replyInfo, string message)
+    private async Task HandleUpdateAsync(Update update)
+    {
+        try
+        {
+            if (update.Type == UpdateType.Message)
+                await Bot_OnMessage(update.Message);
+            else
+                logger.Error("Unknown type {type}", update.Type);
+        }
+        catch (Exception exception)
+        {
+            await PollingErrorHandler(exception);
+        }
+    }
+
+
+    private Task PollingErrorHandler(Exception exception)
+    {
+        var errorMessage = exception switch
+        {
+            ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            _ => exception.ToString()
+        };
+
+        logger.Error(errorMessage);
+        return Task.CompletedTask;
+    }
+
+    public async Task SendMessage(ReplyInfo replyInfo, string message)
     {
         try
         {
@@ -89,24 +132,24 @@ public sealed class TelegramBot : IMessageSender
         }
     }
 
-    private async void Bot_OnMessage(object sender, MessageEventArgs e)
+    private async Task Bot_OnMessage(Message message)
     {
         try
         {
-            if (e.Message.Document == null)
+            if (message.Document == null)
             {
-                logger.Info($"Received a text message in chat {e.Message.Chat.Id} message: {e.Message.Text}");
-                messageReceiver.OnMessage(new ReplyInfo(e.Message.From.Id.ToString(), e.Message.Chat.Id.ToString(), e.Message.MessageId.ToString()), e.Message.Text);
+                logger.Info($"Received a text message in chat {message.Chat.Id} message: {message.Text}");
+                messageReceiver.OnMessage(new ReplyInfo(message.From.Id.ToString(), message.Chat.Id.ToString(), message.MessageId.ToString()), message.Text);
             }
             else
             {
-                logger.Info($"Received a document message in chat {e.Message.Chat.Id} message: {e.Message.Document.FileName}");
+                logger.Info($"Received a document message in chat {message.Chat.Id} message: {message.Document.FileName}");
 
-                var file = botClient.GetFileAsync(e.Message.Document.FileId).Result;
+                var file = botClient.GetFileAsync(message.Document.FileId).Result;
                 logger.Info($"File saved: {file.FilePath}");
                 await using var stream = new MemoryStream();
-                await botClient.GetInfoAndDownloadFileAsync(e.Message.Document.FileId, stream);
-                messageReceiver.OnFileMessage(new ReplyInfo(e.Message.From.Id.ToString(), e.Message.Chat.Id.ToString(), e.Message.MessageId.ToString()), e.Message.Document.FileName, stream);
+                await botClient.GetInfoAndDownloadFileAsync(message.Document.FileId, stream);
+                messageReceiver.OnFileMessage(new ReplyInfo(message.From.Id.ToString(), message.Chat.Id.ToString(), message.MessageId.ToString()), message.Document.FileName, stream);
             }
         }
         catch (Exception ex)
@@ -115,7 +158,7 @@ public sealed class TelegramBot : IMessageSender
 
             try
             {
-                await botClient.SendTextMessageAsync(e.Message.Chat.Id, ex.Message, replyToMessageId: Convert.ToInt32(e.Message.MessageId), replyMarkup: new ReplyKeyboardRemove());
+                await botClient.SendTextMessageAsync(message.Chat.Id, ex.Message, replyToMessageId: Convert.ToInt32(message.MessageId), replyMarkup: new ReplyKeyboardRemove());
             }
             catch (Exception exception)
             {
