@@ -89,7 +89,7 @@ internal sealed class TransactionAdder
 
     private string GetPayee(string transactionPayee)
     {
-        var ret = !string.IsNullOrEmpty(transactionPayee) ? transactionPayee : mcc != 0 ? MccCodes.GetCodeDescription(mcc) : null;
+        var ret = !string.IsNullOrEmpty(transactionPayee) ? transactionPayee : mcc != 0 ? MccCodes.GetCodeDescription(mcc) : memo;
 
         return TruncateString(ret, 50);
     }
