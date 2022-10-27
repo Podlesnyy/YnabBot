@@ -11,7 +11,7 @@ public class BCCBank : IBank
     private static readonly CultureInfo RussianCi = new("ru");
     public bool IsItYour(string fileName) => fileName.Contains("bcctenge");
 
-    public string FileEncoding => "windows-1251";
+    public string FileEncoding => "utf-8";
 
     public List<Transaction> Parse(string fileContent)
     {
@@ -23,7 +23,7 @@ public class BCCBank : IBank
             var memo = transList[1];
             var date = DateTime.Parse(transList[2], RussianCi);
             var sumStr = transList[3].Replace(" ", "").Replace("₸", "");
-            var sum = Convert.ToDouble(sumStr);
+            var sum = -1 * Convert.ToDouble(sumStr);
             ret.Add(new Transaction("bccirontenge", date, sum, memo, 0, null, null));
         }
 
