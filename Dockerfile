@@ -17,6 +17,7 @@ COPY ["Domain/Domain.csproj", "Domain/"]
 COPY ["Banks/VTB/VTB.csproj", "Banks/VTB/"]
 COPY ["Banks/Citibank/Citibank.csproj", "Banks/Citibank/"]
 COPY ["Banks/Tinkoff/Tinkoff.csproj", "Banks/Tinkoff/"]
+COPY ["Banks/BCC/Bcc.csproj", "Banks/BCC/"]
 RUN dotnet restore "YnabBotService/YnabBotService.csproj"
 COPY . .
 WORKDIR "/src/YnabBotService"

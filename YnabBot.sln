@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29409.12
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YnabClient", "YnabClient\YnabClient.csproj", "{4F09836A-5B59-4017-9C60-085EF518275D}"
 EndProject
@@ -29,7 +29,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistent", "Persistent\Persistent.csproj", "{84BD391D-8E81-4E76-910F-8A86011AA7B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VTB", "Banks\VTB\VTB.csproj", "{CF918F95-FC1D-4504-875A-8D039F18DBE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VTB", "Banks\VTB\VTB.csproj", "{CF918F95-FC1D-4504-875A-8D039F18DBE5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bcc", "Banks\BCC\Bcc.csproj", "{5404EC4A-0B20-439C-87EC-5A3A28E60C0B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,6 +87,10 @@ Global
 		{CF918F95-FC1D-4504-875A-8D039F18DBE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF918F95-FC1D-4504-875A-8D039F18DBE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF918F95-FC1D-4504-875A-8D039F18DBE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5404EC4A-0B20-439C-87EC-5A3A28E60C0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5404EC4A-0B20-439C-87EC-5A3A28E60C0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5404EC4A-0B20-439C-87EC-5A3A28E60C0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5404EC4A-0B20-439C-87EC-5A3A28E60C0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,6 +104,7 @@ Global
 		{5236BA20-E490-4849-9F4F-50F5E1F352EF} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
 		{4FC5CE51-D4EC-4DB7-910A-0F2943AB433D} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
 		{CF918F95-FC1D-4504-875A-8D039F18DBE5} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
+		{5404EC4A-0B20-439C-87EC-5A3A28E60C0B} = {10AAE024-4FAA-4645-9D1E-A8776CCC374F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {79A08581-35E4-49D1-8172-358E6440F251}
