@@ -3,7 +3,8 @@
 using Adp.Banks.BCC;
 using System.Text;
 
-Console.WriteLine("Hello, World!");
 
-var bank= new BCCBank();
-var tr = bank.Parse(File.ReadAllText(@"g:\bcctenge.txt", Encoding.GetEncoding(bank.FileEncoding)));
+var bank= new BinanceBuffer();
+var tr = bank.Parse(File.ReadAllText(@"g:\binance.txt", Encoding.GetEncoding(bank.FileEncoding)));
+
+Console.ReadLine();

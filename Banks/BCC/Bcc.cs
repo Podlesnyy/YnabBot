@@ -16,14 +16,21 @@ public class BCCBank : IBank
     public List<Transaction> Parse(string fileContent)
     {
         var ret = new List<Transaction>();
-        var list = fileContent.Split(Environment.NewLine);
-        for (var i = 0; i < list.Length / 4; i++)
+        var list = fileContent.Split("statementlogo").Skip(1).ToList();
+        for (var i = 0; i < list.Count; i++)
         {
-            var transList = list.Skip(i * 4).Take(4).ToList();
+            var transList = list[i].Split(Environment.NewLine);
             var memo = transList[1];
             var date = DateTime.Parse(transList[2], RussianCi);
-            var sumStr = transList[3].Replace(" ", "").Replace("₸", "");
-            var sum = -1 * Convert.ToDouble(sumStr);
+            var sumStr = transList[3].Replace(" ", string.Empty).Replace("₸", string.Empty);
+            var sum = -1 * Convert.ToDouble(sumStr, CultureInfo.InvariantCulture);
+            if (transList.Length > 5)
+            {
+                var cashbackSumStr = transList[4].Replace("Кешбэк:", string.Empty).Replace(" ", string.Empty).Replace("₸", string.Empty);
+                var cashbackSum = -1 * Convert.ToDouble(cashbackSumStr, CultureInfo.InvariantCulture);
+                ret.Add(new Transaction("bccirontenge", date, cashbackSum, memo, 0, null, "Cashback"));
+            }
+
             ret.Add(new Transaction("bccirontenge", date, sum, memo, 0, null, null));
         }
 
