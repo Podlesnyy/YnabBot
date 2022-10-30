@@ -4,7 +4,7 @@ using Adp.Banks.BCC;
 using System.Text;
 
 
-var bank= new BinanceBuffer();
-var tr = bank.Parse(File.ReadAllText(@"g:\binance.txt", Encoding.GetEncoding(bank.FileEncoding)));
+var bank= new Kaspi();
+var tr = bank.Parse(File.ReadAllText(@"g:\kaspi.txt", Encoding.GetEncoding(bank.FileEncoding)));
 
 Console.ReadLine();
