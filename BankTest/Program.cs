@@ -1,10 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using Adp.Banks.BCC;
 using System.Text;
+using Adp.Banks.BCC;
 
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-var bank= new Kaspi();
-var tr = bank.Parse(File.ReadAllText(@"g:\kaspi.txt", Encoding.GetEncoding(bank.FileEncoding)));
+var bank = new Raiffeisen();
+var unused = bank.Parse(File.ReadAllText(@"g:\account_statement_11.10.22-11.11.22.csv", Encoding.GetEncoding(bank.FileEncoding)));
 
 Console.ReadLine();
