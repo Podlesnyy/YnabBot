@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Adp.Banks.Interfaces;
 
 namespace Adp.Banks.BCC;
@@ -17,7 +16,7 @@ public class BinanceBuffer : IBank
     public List<Transaction> Parse(string fileContent)
     {
         var ret = new List<Transaction>();
-        var withoutDoubleLines = Regex.Replace(fileContent, @"(?:\r?\n|\r){2,}", System.Environment.NewLine);
+        var withoutDoubleLines = Regex.Replace(fileContent, @"(?:\r?\n|\r){2,}", Environment.NewLine);
         var list = withoutDoubleLines.Split("Связаться с контрагентом").ToList();
         Console.WriteLine(fileContent);
         Console.WriteLine(list.Count);
@@ -25,7 +24,6 @@ public class BinanceBuffer : IBank
         foreach (var transPlain in list)
         {
             var transList = transPlain.Split(Environment.NewLine).Where(static str => !string.IsNullOrEmpty(str)).ToList();
-            Console.WriteLine(transList.Count);
             if (transList.Count < 10)
                 continue;
 

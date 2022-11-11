@@ -6,7 +6,7 @@ using Adp.Banks.Interfaces;
 
 namespace Adp.Banks.BCC;
 
-public class BCCUsdBank : IBank
+public class BccUsdBank : IBank
 {
     private static readonly CultureInfo RussianCi = new("ru");
     public bool IsItYour(string fileName) => fileName.Contains("bccusd");

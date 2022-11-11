@@ -6,7 +6,7 @@ using Adp.Banks.Interfaces;
 
 namespace Adp.Banks.BCC;
 
-public class BCCBank : IBank
+public class BccBank : IBank
 {
     private static readonly CultureInfo RussianCi = new("ru");
     public bool IsItYour(string fileName) => fileName.Contains("bcctenge");
@@ -17,9 +17,9 @@ public class BCCBank : IBank
     {
         var ret = new List<Transaction>();
         var list = fileContent.Split("statementlogo").Skip(1).ToList();
-        for (var i = 0; i < list.Count; i++)
+        foreach (var t in list)
         {
-            var transList = list[i].Split(Environment.NewLine);
+            var transList = t.Split(Environment.NewLine);
             var memo = transList[1];
             var date = DateTime.Parse(transList[2], RussianCi);
             var sumStr = transList[3].Replace(" ", string.Empty).Replace("₸", string.Empty);
