@@ -28,11 +28,11 @@ public class AlfaBank : IBank
         while (csv.Read())
         {
             var idField = csv.GetField<string>(4);
-            if (idField is "MG01#U1704091501" or "CRRR#U1704091501")
+            if (idField.Contains("U1704091501"))
                 continue;
 
             var memo = csv.GetField<string>(5);
-            if (memo.Contains("Андрей Дмитриевич") && memo.Contains("Предоставление транша"))
+            if (memo.Contains("Предоставление транша"))
                 continue;
 
             var regexSecondDate = new Regex(@"(\d{2}\.\d{2}\.\d{2}) (\d{2}\.\d{2}\.\d{2})");
