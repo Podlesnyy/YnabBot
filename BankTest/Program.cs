@@ -5,7 +5,7 @@ using Adp.Banks.BCC;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-var bank = new Raiffeisen();
-var unused = bank.Parse(File.ReadAllText(@"g:\account_statement_11.10.22-11.11.22.csv", Encoding.GetEncoding(bank.FileEncoding)));
+var bank = new BccRub();
+var unused = bank.Parse(File.ReadAllText(@"f:\bccironrub.txt", Encoding.GetEncoding(bank.FileEncoding)));
 
 Console.ReadLine();
