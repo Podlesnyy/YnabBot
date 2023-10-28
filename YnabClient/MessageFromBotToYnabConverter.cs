@@ -134,7 +134,8 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
         }
 
         var bank = banks.FirstOrDefault(item => item.IsItYour(fileName));
-        if (bank != null) return bank.Parse(Content(bank.FileEncoding));
+        if ( bank != null )
+            return bank.Parse( stream ) ?? bank.Parse(Content(bank.FileEncoding));
 
         logger.Info("Не могу найти банк по имени файла: " + fileName);
         return new List<Transaction>();
