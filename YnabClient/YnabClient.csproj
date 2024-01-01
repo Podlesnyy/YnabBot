@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Adp.YnabClient</RootNamespace>
     <AssemblyName>YnabClient</AssemblyName>
   </PropertyGroup>
@@ -15,8 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NLog" Version="5.2.5" />
-    <PackageReference Include="Stateless" Version="5.13.0" />
+    <PackageReference Include="NLog" Version="5.2.8" />
+    <PackageReference Include="Stateless" Version="5.15.0" />
     <PackageReference Include="Telegram.Bot" Version="19.0.0" />
     <PackageReference Include="YamlDotNet" Version="13.7.1" />
     <PackageReference Include="YNAB.SDK" Version="1.2.0" />
