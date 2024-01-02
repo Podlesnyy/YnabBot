@@ -1,15 +1,8 @@
 ﻿namespace Adp.Messengers.Interfaces;
 
-public class ReplyInfo
+public sealed class ReplyInfo( string userId, string chatId, string messageId )
 {
-    public ReplyInfo(string userId, string chatId, string messageId)
-    {
-        UserId = userId;
-        ChatId = chatId;
-        MessageId = messageId;
-    }
-
-    public string UserId { get; }
-    public string ChatId { get; }
-    public string MessageId { get; }
+    public string UserId { get; } = userId;
+    public string ChatId { get; } = chatId;
+    public string MessageId { get; } = messageId;
 }

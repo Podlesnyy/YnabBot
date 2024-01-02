@@ -1039,8 +1039,8 @@ internal static class MccCodes
 
     public static string GetCodeDescription(int mcc)
     {
-        if (CodeDescription.ContainsKey(mcc))
-            return CodeDescription[mcc];
+        if (CodeDescription.TryGetValue( mcc, out var description ))
+            return description;
 
         return "Неизвестный код MCC " + mcc;
     }

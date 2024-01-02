@@ -16,18 +16,12 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Adp.Messengers.Telegram;
 
-public sealed class TelegramBot : IMessageSender
+public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
 {
-    private readonly IConfiguration configuration;
     private readonly Logger logger = LogManager.GetCurrentClassLogger();
     private TelegramBotClient botClient;
     private CancellationTokenSource cts;
     private IMessageReceiver messageReceiver;
-
-    public TelegramBot(IConfiguration configuration)
-    {
-        this.configuration = configuration;
-    }
 
     public void Start(IMessageReceiver receiver)
     {
@@ -139,7 +133,7 @@ public sealed class TelegramBot : IMessageSender
             if (message.Document == null)
             {
                 logger.Info($"Received a text message in chat {message.Chat.Id} message: {message.Text}");
-                messageReceiver.OnMessage(new ReplyInfo(message.From.Id.ToString(), message.Chat.Id.ToString(), message.MessageId.ToString()), message.Text);
+                messageReceiver.OnMessage(new ReplyInfo(message.From!.Id.ToString(), message.Chat.Id.ToString(), message.MessageId.ToString()), message.Text);
             }
             else
             {
@@ -149,7 +143,7 @@ public sealed class TelegramBot : IMessageSender
                 logger.Info($"File saved: {file.FilePath}");
                 await using var stream = new MemoryStream();
                 await botClient.GetInfoAndDownloadFileAsync(message.Document.FileId, stream);
-                messageReceiver.OnFileMessage(new ReplyInfo(message.From.Id.ToString(), message.Chat.Id.ToString(), message.MessageId.ToString()), message.Document.FileName, stream);
+                messageReceiver.OnFileMessage(new ReplyInfo(message.From!.Id.ToString(), message.Chat.Id.ToString(), message.MessageId.ToString()), message.Document.FileName, stream);
             }
         }
         catch (Exception ex)

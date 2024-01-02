@@ -10,26 +10,13 @@ using YNAB.SDK.Model;
 
 namespace Adp.YnabClient.Ynab;
 
-internal sealed class TransactionsAdder
+internal sealed class TransactionsAdder( API ynabApi, BudgetSummary budget, YNAB.SDK.Model.Account account )
 {
-    private readonly YNAB.SDK.Model.Account account;
-    private readonly BudgetSummary budget;
     private readonly Logger logger = LogManager.GetCurrentClassLogger();
-    private readonly StringBuilder progress;
-    private readonly List<SaveTransaction> saveTransactions;
-    private readonly List<UpdateTransaction> updateTransactions;
-    private readonly API ynabApi;
+    private readonly StringBuilder progress = new();
+    private readonly List<SaveTransaction> saveTransactions = new();
+    private readonly List<UpdateTransaction> updateTransactions = new();
     private TransactionsResponse transactionSinceOldest;
-
-    public TransactionsAdder(API ynabApi, BudgetSummary budget, YNAB.SDK.Model.Account account)
-    {
-        this.ynabApi = ynabApi;
-        this.budget = budget;
-        this.account = account;
-        progress = new StringBuilder();
-        updateTransactions = new List<UpdateTransaction>();
-        saveTransactions = new List<SaveTransaction>();
-    }
 
     public string Result => progress.ToString();
 

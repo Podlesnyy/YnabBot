@@ -16,15 +16,8 @@ using Microsoft.Extensions.Hosting;
 
 namespace Adp.YnabBotService;
 
-internal class Worker : BackgroundService
+internal sealed class Worker( IConfiguration configuration ) : BackgroundService
 {
-    private readonly IConfiguration configuration;
-
-    public Worker(IConfiguration configuration)
-    {
-        this.configuration = configuration;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var builder = new ContainerBuilder();

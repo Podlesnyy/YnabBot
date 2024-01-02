@@ -5,24 +5,15 @@ using Newtonsoft.Json;
 
 namespace Adp.YnabClient.Ynab;
 
-public class Oauth
+public sealed class Oauth( IConfiguration configuration )
 {
-    private readonly string baseYnabUri;
+    private const string BaseYnabUri = "https://app.youneedabudget.com/oauth/";
     private readonly HttpClient client = new();
-    private readonly string redirectUri;
-    private readonly string ynabClientId;
-    private readonly string ynabClientSecret;
+    private readonly string redirectUri = configuration.GetValue<string>("YNAB_REDIRECT_URI");
+    private readonly string ynabClientId = configuration.GetValue<string>("YNAB_CLIENT_ID");
+    private readonly string ynabClientSecret = configuration.GetValue<string>("YNAB_CLIENT_SECRET");
 
-    public Oauth(IConfiguration configuration)
-    {
-        ynabClientId = configuration.GetValue<string>("YNAB_CLIENT_ID");
-        ynabClientSecret = configuration.GetValue<string>("YNAB_CLIENT_SECRET");
-        redirectUri = configuration.GetValue<string>("YNAB_REDIRECT_URI");
-
-        baseYnabUri = "https://app.youneedabudget.com/oauth/";
-    }
-
-    public string GetAuthLink() => $"{baseYnabUri}authorize?client_id={ynabClientId}&redirect_uri={redirectUri}&response_type=code";
+    public string GetAuthLink() => $"{BaseYnabUri}authorize?client_id={ynabClientId}&redirect_uri={redirectUri}&response_type=code";
 
     public AccessTokenInfo GetAccessToken(string authCode)
     {
@@ -36,7 +27,7 @@ public class Oauth
         };
         var content = new FormUrlEncodedContent(values);
 
-        var authUrl = $"{baseYnabUri}token";
+        const string authUrl = $"{BaseYnabUri}token";
 
         var response = client.PostAsync(authUrl, content).Result;
         var responseStr = response.Content.ReadAsStringAsync().Result;
@@ -48,7 +39,7 @@ public class Oauth
         var values = new Dictionary<string, string> {{"client_id", ynabClientId}, {"client_secret", ynabClientSecret}, {"grant_type", "refresh_token"}, {"refresh_token", refreshToken}};
         var content = new FormUrlEncodedContent(values);
 
-        var authUrl = $"{baseYnabUri}token";
+        const string authUrl = $"{BaseYnabUri}token";
 
         var response = client.PostAsync(authUrl, content).Result;
         var responseStr = response.Content.ReadAsStringAsync().Result;

@@ -2,14 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Adp.YnabBotService.DockerEnv;
 
-public sealed class ConfigurationSource : IConfigurationSource
+internal sealed class ConfigurationSource( string envPath ) : IConfigurationSource
 {
-    private readonly string envPath;
-
-    public ConfigurationSource(string envPath)
-    {
-        this.envPath = envPath;
-    }
-
     public IConfigurationProvider Build(IConfigurationBuilder builder) => new EnvProvider(envPath);
 }
