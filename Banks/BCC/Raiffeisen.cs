@@ -8,10 +8,17 @@ using CsvHelper.Configuration;
 
 namespace Adp.Banks.BCC;
 
-public class Raiffeisen : IBank
+// ReSharper disable once UnusedType.Global
+public class Raiffeisen( string id ) : IBank
 {
+    // ReSharper disable once UnusedMember.Global
+    public Raiffeisen() : this( "NeverBeSuchFile" )
+    {
+    }
+
     private static readonly CultureInfo RussianCi = new("ru");
-    public bool IsItYour(string fileName) => fileName.Contains("account_statement_");
+
+    public bool IsItYour(string fileName) => fileName.Contains($"{id}_account_statement_");
 
     public string FileEncoding => "windows-1251";
 
@@ -24,12 +31,12 @@ public class Raiffeisen : IBank
         csv.Read();
         while (csv.Read())
         {
-            const string schet = "raiffeisen3406";
+            var raifSchet = $"raiffeisen_{id}";
             var date = csv.GetField<DateTime>(0);
             var memo = csv.GetField<string>(1);
             var sum = -1 * Convert.ToDouble(csv.GetField<string>(5).Replace(" ", string.Empty), CultureInfo.InvariantCulture);
 
-            ret.Add(new Transaction(schet, date, sum, memo, 0, null, null));
+            ret.Add(new Transaction(raifSchet, date, sum, memo, 0, null, null));
         }
 
         return ret;
