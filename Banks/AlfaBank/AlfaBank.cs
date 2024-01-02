@@ -36,7 +36,7 @@ public class AlfaBank : IBank
                 continue;
 
             var regexSecondDate = new Regex(@"(\d{2}\.\d{2}\.\d{2}) (\d{2}\.\d{2}\.\d{2})");
-            var dateField = idField?.Contains("CRD_") == true ? regexSecondDate.Match(memo).Groups[2].Value : csv.GetField<string>(3);
+            var dateField = idField.Contains("CRD_") ? regexSecondDate.Match(memo).Groups[2].Value : csv.GetField<string>(3);
             var date = DateTime.Parse(dateField, RussianCi);
 
             var schet = csv.GetField<string>(1);

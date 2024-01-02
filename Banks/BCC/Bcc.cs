@@ -48,7 +48,7 @@ public class BccBank : IBank
         return ret;
     }
 
-    private string ClearTransactionString(string trans)
+    private static string ClearTransactionString(string trans)
     {
         var ret = RemoveSymbol(trans, " ");
         ret = RemoveSymbol(ret, "₸");
@@ -58,44 +58,5 @@ public class BccBank : IBank
         return ret;
     }
 
-    private string RemoveSymbol(string from, string symbol)
-    {
-        return from.Replace(symbol, string.Empty);
-    }
-
-}
-
-public class BccTenge : BccBank
-{
-    public BccTenge() : base("bccirontenge", "bccirontenge")
-    {
-    }
-}
-
-public class BccKartaKarta : BccBank
-{
-    public BccKartaKarta() : base("bcckartakarta", "bcckartakarta")
-    {
-    }
-}
-
-public class BccUsd : BccBank
-{
-    public BccUsd() : base("bccironusd", "bccironusd")
-    {
-    }
-}
-
-public class BccEuro : BccBank
-{
-    public BccEuro() : base("bccironeuro", "bccironeuro")
-    {
-    }
-}
-
-public class BccRub : BccBank
-{
-    public BccRub() : base("bccironrub", "bccironrub")
-    {
-    }
+    private static string RemoveSymbol(string from, string symbol) => from.Replace(symbol, string.Empty);
 }

@@ -26,7 +26,7 @@ public class CitiBank : IBank
         while (csv.Read())
         {
             var schet = csv.GetField<string>(3);
-            var date = DateTime.ParseExact(csv.GetField(0), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            var date = DateTime.ParseExact(csv.GetField(0)!, "dd/MM/yyyy", CultureInfo.InvariantCulture);
 
             var memo = csv.GetField<string>(1);
             var sum = -1 * Convert.ToDouble(csv.GetField<string>(2), CultureInfo.InvariantCulture);

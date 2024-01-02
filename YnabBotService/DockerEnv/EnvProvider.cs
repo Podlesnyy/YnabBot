@@ -4,15 +4,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace Adp.YnabBotService.DockerEnv;
 
-public sealed class EnvProvider : ConfigurationProvider
+public sealed class EnvProvider( string envPath ) : ConfigurationProvider
 {
-    private readonly string envPath;
-
-    public EnvProvider(string envPath)
-    {
-        this.envPath = envPath;
-    }
-
     public override void Load()
     {
         if (!File.Exists(envPath))

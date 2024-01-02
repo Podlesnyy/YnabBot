@@ -8,6 +8,7 @@ using CsvHelper.Configuration;
 
 namespace Adp.Banks.BCC;
 
+// ReSharper disable once UnusedType.Global
 public class Binance : IBank
 {
     private static readonly CultureInfo RussianCi = new("ru");

@@ -128,17 +128,17 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
 
     private List<Transaction> ParseFile(string fileName, MemoryStream stream)
     {
-        string Content(string enc)
-        {
-            return Encoding.GetEncoding(enc).GetString(stream.ToArray());
-        }
-
         var bank = banks.FirstOrDefault(item => item.IsItYour(fileName));
         if ( bank != null )
             return bank.Parse( stream ) ?? bank.Parse(Content(bank.FileEncoding));
 
         logger.Info("Не могу найти банк по имени файла: " + fileName);
-        return new List<Transaction>();
+        return [];
+
+        string Content(string enc)
+        {
+            return Encoding.GetEncoding(enc).GetString(stream.ToArray());
+        }
     }
 
     private User GetUser(ReplyInfo replyInfo) => dicYnabUsers.ContainsKey(replyInfo.UserId) ? dicYnabUsers[replyInfo.UserId] : CreateAndInitUser(replyInfo);

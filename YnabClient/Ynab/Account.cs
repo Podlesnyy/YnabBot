@@ -61,8 +61,6 @@ internal sealed class Account
         var ynabApi = new API(accessToken);
 
         lock (objLock)
-        {
             DicAccounts = ynabApi.Budgets.GetBudgets().Data.Budgets.ToDictionary(static item => item, item => ynabApi.Accounts.GetAccounts(item.Id.ToString()).Data.Accounts);
-        }
     }
 }
