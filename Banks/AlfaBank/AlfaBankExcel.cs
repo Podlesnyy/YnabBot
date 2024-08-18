@@ -9,21 +9,19 @@ namespace Adp.Banks.AlfaBank;
 
 public class AlfaBankExcel : IBank
 {
+    public bool IsItYour( string fileName ) => fileName.Contains( "Statement " );
 
-    public bool IsItYour(string fileName) => fileName.Contains("Statement ");
-
-
-    public List<Transaction> Parse(MemoryStream stream)
+    public List< Transaction > Parse( MemoryStream stream )
     {
-        var ret = new List<Transaction>();
+        var ret = new List< Transaction >();
 
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-        using var package = new ExcelPackage(stream);
-        var worksheet = package.Workbook.Worksheets[0];
+        using var package = new ExcelPackage( stream );
+        var worksheet = package.Workbook.Worksheets[ 0 ];
         var rowCount = worksheet.Dimension.Rows;
 
-        for (var row = 2; row < rowCount; row++) // Предполагается, что первая строка содержит заголовки
+        for ( var row = 2; row < rowCount; row++ ) // Предполагается, что первая строка содержит заголовки
         {
             var operationDate = DateTime.ParseExact( worksheet.Cells[ row, 1 ].Text, "dd.MM.yyyy", CultureInfo.InvariantCulture );
             var accountNumber = worksheet.Cells[ row, 4 ].Text;
@@ -39,10 +37,10 @@ public class AlfaBankExcel : IBank
             //var Comment = worksheet.Cells[ row, 14 ].Text;
             var sum = type == "Пополнение" ? amount * -1 : amount;
             var memo = $"{operationDescription}_{category}_{mcc}_{type}_{cardNumber}";
-            if (memo.Contains("Погашение ОД                                                          Дог."))
+            if ( memo.Contains( "Погашение ОД                                                          Дог." ) )
                 continue;
 
-            ret.Add(new Transaction( accountNumber, operationDate, sum, memo, mcc, null, category ));
+            ret.Add( new Transaction( accountNumber, operationDate, sum, memo, mcc, null, category ) );
         }
 
         return ret;

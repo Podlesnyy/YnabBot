@@ -1,41 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
+using System.Xml;
 using Adp.Banks.Interfaces;
-using CsvHelper;
-using CsvHelper.Configuration;
+
+// ReSharper disable LoopCanBeConvertedToQuery
 
 namespace Adp.Banks.Tinkoff;
 
 public class TinkoffBank : IBank
 {
-    private static readonly CultureInfo RussianCi = new("ru");
+    public bool IsItYour( string fileName ) => fileName.Contains( "operations" );
 
-    public bool IsItYour(string fileName) => fileName.Contains("operations");
+    public string FileEncoding => "utf-8";
 
-    public string FileEncoding => "windows-1251";
-
-    public List<Transaction> Parse(string fileContent)
+    public List< Transaction > Parse( string fileContent )
     {
-        var ret = new List<Transaction>();
-        var config = new CsvConfiguration(RussianCi) {Delimiter = ";", HasHeaderRecord = true, BadDataFound = null};
-        var csv = new CsvReader(new StringReader(fileContent), config);
+        var ret = new List< Transaction >();
+        var doc = new XmlDocument();
+        doc.LoadXml( fileContent );
 
-        csv.Read();
-        while (csv.Read())
+        // Извлечение всех ACCTID узлов
+        var acctidNodes = doc.GetElementsByTagName( "ACCTID" );
+
+        foreach ( XmlNode acctidNode in acctidNodes )
         {
-            var status = csv.GetField<string>(3);
-            if (status != "OK" && status != "WAITING")
-                continue;
+            var acctid = acctidNode.InnerText;
 
-            var date = csv.GetField<DateTime>(0).Date;
-            var mccCode = csv.GetField<string>(10);
-            var mcc = string.IsNullOrEmpty(mccCode) ? 0 : Convert.ToInt32(mccCode);
-            var memo = csv.GetField<string>(11);
-            var sum = -1 * csv.GetField<double>(4);
+            var accountNode = acctidNode.ParentNode.ParentNode;
+            var transactions = accountNode.SelectNodes( ".//STMTTRN" );
 
-            ret.Add(new Transaction("tinkoff", date, sum, memo, mcc, null, null));
+            foreach ( XmlNode node in transactions )
+            {
+                var dateTime = DateTime.ParseExact( node.SelectSingleNode( "DTPOSTED" )?.InnerText[ ..14 ]!, "yyyyMMddHHmmss", null );
+                var memo = node.SelectSingleNode( "MEMO" )?.InnerText;
+                var id = node.SelectSingleNode( "FITID" )?.InnerText;
+                var sum = double.Parse( node.SelectSingleNode( "TRNAMT" )?.InnerText!, CultureInfo.InvariantCulture ) * -1;
+                var payee = node.SelectSingleNode( "NAME" )?.InnerText;
+
+                ret.Add( new Transaction( acctid, dateTime, sum, memo, 0, id, payee ) );
+            }
         }
 
         return ret;
