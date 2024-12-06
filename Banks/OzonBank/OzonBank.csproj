@@ -12,7 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Banks\Interfaces\Interfaces.csproj" />
+		<ProjectReference Include="..\Interfaces\Interfaces.csproj" />
 	</ItemGroup>
 
 </Project>

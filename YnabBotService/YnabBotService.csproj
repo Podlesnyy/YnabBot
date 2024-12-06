@@ -28,6 +28,7 @@
     <ProjectReference Include="..\Banks\AlfaBank\AlfaBank.csproj" />
     <ProjectReference Include="..\Banks\Citibank\Citibank.csproj" />
     <ProjectReference Include="..\Banks\Interfaces\Interfaces.csproj" />
+    <ProjectReference Include="..\Banks\OzonBank\OzonBank.csproj" />
     <ProjectReference Include="..\Banks\SberBank\SberBank.csproj" />
     <ProjectReference Include="..\Banks\BCC\Bcc.csproj" />
     <ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj" />

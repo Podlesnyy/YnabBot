@@ -11,8 +11,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Banks\AlfaBank\AlfaBank.csproj" />
 		<ProjectReference Include="..\Banks\BCC\Bcc.csproj" />
+		<ProjectReference Include="..\Banks\OzonBank\OzonBank.csproj" />
 		<ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj" />
-		<ProjectReference Include="..\OzonBank\OzonBank.csproj" />
 	</ItemGroup>
 
 </Project>
