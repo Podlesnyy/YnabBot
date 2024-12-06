@@ -61,7 +61,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
         {
             logger.Info( $"Reply with keyboard in chat {replyInfo.ChatId} message: {string.Join( ";", options )} on {replyInfo.MessageId}" );
             var rkm = new ReplyKeyboardMarkup( options.Select( static item => new KeyboardButton[] { item } ).ToArray() );
-            await botClient.SendMessage( Convert.ToInt64( replyInfo.ChatId ), message, replyMarkup: rkm, replyParameters : new ReplyParameters { MessageId = Convert.ToInt32( replyInfo.MessageId ) } );
+            await botClient.SendMessage( Convert.ToInt64( replyInfo.ChatId ), message, replyMarkup: rkm, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( replyInfo.MessageId ) } );
         }
         catch ( Exception e )
         {
@@ -78,7 +78,8 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
             if ( string.IsNullOrEmpty( message ) )
                 return;
 
-            await botClient.SendMessage( Convert.ToInt64( replyInfo.ChatId ), message, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32(replyInfo.MessageId) }, replyMarkup: new ReplyKeyboardRemove(), parseMode: ParseMode.Html );
+            await botClient.SendMessage( Convert.ToInt64( replyInfo.ChatId ), message, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( replyInfo.MessageId ) }, replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.Html );
         }
         catch ( Exception e )
         {
@@ -139,7 +140,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
 
             try
             {
-                await botClient.SendMessage( message.Chat.Id, ex.Message, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32(message.MessageId) }, replyMarkup: new ReplyKeyboardRemove() );
+                await botClient.SendMessage( message.Chat.Id, ex.Message, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( message.MessageId ) }, replyMarkup: new ReplyKeyboardRemove() );
             }
             catch ( Exception exception )
             {

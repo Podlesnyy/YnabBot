@@ -1,11 +1,12 @@
 ﻿using System;
+
 // ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 
 namespace Adp.Banks.Interfaces;
 
 public sealed class Transaction
 {
-    public Transaction(string bankAccount, DateTime date, double amount, string memo, int mcc, string id, string payee, string ynabBudget = null, string ynabAccount = null)
+    public Transaction( string bankAccount, DateTime date, double amount, string memo, int mcc, string id, string payee, string ynabBudget = null, string ynabAccount = null )
     {
         BankAccount = bankAccount;
         Date = date;

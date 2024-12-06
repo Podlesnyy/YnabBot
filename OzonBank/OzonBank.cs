@@ -25,12 +25,12 @@ public sealed class OzonBank : IBank
         return transactions;
     }
 
-    private static List<Transaction> GetTransactions( string csvString )
+    private static List< Transaction > GetTransactions( string csvString )
     {
-        using var reader = new StringReader(csvString);
-        var config = new CsvConfiguration(RussianCi) { Delimiter = ",", HasHeaderRecord = true, BadDataFound = null };
-        using var csv = new CsvReader(reader, config);
-        csv.Context.RegisterClassMap<TransactionMap>();
+        using var reader = new StringReader( csvString );
+        var config = new CsvConfiguration( RussianCi ) { Delimiter = ",", HasHeaderRecord = true, BadDataFound = null };
+        using var csv = new CsvReader( reader, config );
+        csv.Context.RegisterClassMap< TransactionMap >();
         return csv.GetRecords< Transaction >().ToList();
     }
 

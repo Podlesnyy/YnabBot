@@ -4,7 +4,8 @@ using CsvHelper.Configuration;
 
 namespace OzonBank;
 
-public sealed class TransactionMap : ClassMap< Transaction >
+// ReSharper disable once ClassNeverInstantiated.Global
+internal sealed class TransactionMap : ClassMap< Transaction >
 {
     public TransactionMap()
     {
@@ -15,10 +16,10 @@ public sealed class TransactionMap : ClassMap< Transaction >
             Name( "Сумма операции" ).
             Convert( static args =>
                      {
-                         var value = args.Row.GetField( "Сумма операции" ).Replace( " ", "" ).Replace( "+", "" );
+                         var value = args.Row.GetField( "Сумма операции" )!.Replace( " ", "" ).Replace( "+", "" );
                          return double.Parse( value, CultureInfo.InvariantCulture );
                      } );
 
-        Map(static m => m.BankAccount).Constant( "ozon_rub_account");
+        Map( static m => m.BankAccount ).Constant( "ozon_rub_account" );
     }
 }
