@@ -23,7 +23,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
     private CancellationTokenSource cts;
     private IMessageReceiver messageReceiver;
 
-    public void Start( IMessageReceiver receiver )
+    public async Task Start( IMessageReceiver receiver )
     {
         logger.Info( "Telegram bot initializing " );
         messageReceiver = receiver;
@@ -44,13 +44,13 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
             botClient = new TelegramBotClient( token );
         }
 
-        var me = botClient.GetMeAsync().Result;
+        var me = await botClient.GetMe();
         logger.Info( $"Hello, World! I am user {me.Id} and my name is {me.FirstName}." );
 
         cts = new CancellationTokenSource();
 
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
-        var receiverOptions = new ReceiverOptions { AllowedUpdates = [], ThrowPendingUpdates = true };
+        var receiverOptions = new ReceiverOptions { AllowedUpdates = [], DropPendingUpdates = true };
 
         botClient.StartReceiving( ( _, update, _ ) => HandleUpdateAsync( update ), ( _, exception, _ ) => PollingErrorHandler( exception ), receiverOptions, cts.Token );
     }
@@ -61,8 +61,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
         {
             logger.Info( $"Reply with keyboard in chat {replyInfo.ChatId} message: {string.Join( ";", options )} on {replyInfo.MessageId}" );
             var rkm = new ReplyKeyboardMarkup( options.Select( static item => new KeyboardButton[] { item } ).ToArray() );
-
-            await botClient.SendTextMessageAsync( Convert.ToInt64( replyInfo.ChatId ), message, replyMarkup: rkm, replyToMessageId: Convert.ToInt32( replyInfo.MessageId ) );
+            await botClient.SendMessage( Convert.ToInt64( replyInfo.ChatId ), message, replyMarkup: rkm, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( replyInfo.MessageId ) } );
         }
         catch ( Exception e )
         {
@@ -79,7 +78,8 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
             if ( string.IsNullOrEmpty( message ) )
                 return;
 
-            await botClient.SendTextMessageAsync( Convert.ToInt64( replyInfo.ChatId ), message, replyToMessageId: Convert.ToInt32( replyInfo.MessageId ), replyMarkup: new ReplyKeyboardRemove(), parseMode: ParseMode.Html );
+            await botClient.SendMessage( Convert.ToInt64( replyInfo.ChatId ), message, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( replyInfo.MessageId ) }, replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.Html );
         }
         catch ( Exception e )
         {
@@ -127,10 +127,10 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
             {
                 logger.Info( $"Received a document message in chat {message.Chat.Id} message: {message.Document.FileName}" );
 
-                var file = botClient.GetFileAsync( message.Document.FileId ).Result;
+                var file = botClient.GetFile( message.Document.FileId ).Result;
                 logger.Info( $"File saved: {file.FilePath}" );
                 await using var stream = new MemoryStream();
-                await botClient.GetInfoAndDownloadFileAsync( message.Document.FileId, stream );
+                await botClient.GetInfoAndDownloadFile( message.Document.FileId, stream );
                 messageReceiver.OnFileMessage( new ReplyInfo( message.From!.Id.ToString(), message.Chat.Id.ToString(), message.MessageId.ToString() ), message.Document.FileName, stream );
             }
         }
@@ -140,7 +140,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
 
             try
             {
-                await botClient.SendTextMessageAsync( message.Chat.Id, ex.Message, replyToMessageId: Convert.ToInt32( message.MessageId ), replyMarkup: new ReplyKeyboardRemove() );
+                await botClient.SendMessage( message.Chat.Id, ex.Message, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( message.MessageId ) }, replyMarkup: new ReplyKeyboardRemove() );
             }
             catch ( Exception exception )
             {

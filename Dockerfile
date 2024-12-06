@@ -1,9 +1,9 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY ["YnabBotService/YnabBotService.csproj", "YnabBotService/"]
 COPY ["Banks/AlfaBank/AlfaBank.csproj", "Banks/AlfaBank/"]
@@ -11,6 +11,7 @@ COPY ["Banks/Interfaces/Interfaces.csproj", "Banks/Interfaces/"]
 COPY ["Messengers/Telegram/Telegram.csproj", "Messengers/Telegram/"]
 COPY ["Messengers/Interfaces/Interfaces.csproj", "Messengers/Interfaces/"]
 COPY ["Banks/SberBank/SberBank.csproj", "Banks/SberBank/"]
+COPY ["Banks/OzonBank/OzonBank.csproj", "Banks/OzonBank/"]
 COPY ["YnabClient/YnabClient.csproj", "YnabClient/"]
 COPY ["Persistent/Persistent.csproj", "Persistent/"]
 COPY ["Domain/Domain.csproj", "Domain/"]
