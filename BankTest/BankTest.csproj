@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -7,10 +7,12 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+
 	<ItemGroup>
 		<ProjectReference Include="..\Banks\AlfaBank\AlfaBank.csproj" />
 		<ProjectReference Include="..\Banks\BCC\Bcc.csproj" />
 		<ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj" />
+		<ProjectReference Include="..\OzonBank\OzonBank.csproj" />
 	</ItemGroup>
 
 </Project>
