@@ -17,7 +17,7 @@ internal sealed class TransactionMap : ClassMap< Transaction >
             Convert( static args =>
                      {
                          var value = args.Row.GetField( "Сумма операции" )!.Replace( " ", "" ).Replace( "+", "" );
-                         return double.Parse( value, CultureInfo.InvariantCulture );
+                         return double.Parse( value, CultureInfo.InvariantCulture ) * -1;
                      } );
 
         Map( static m => m.BankAccount ).Constant( "ozon_rub_account" );
