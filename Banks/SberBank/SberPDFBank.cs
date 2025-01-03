@@ -13,7 +13,6 @@ namespace Adp.Banks.SberBank;
 public sealed class SberPdfBank : IBank
 {
     private string bankAccount;
-    private static readonly CultureInfo RussianCi = new("ru");
 
     public bool IsItYour(string fileName)
     {
@@ -52,6 +51,7 @@ public sealed class SberPdfBank : IBank
         const string datePattern = @"^\d{2}\.\d{2}\.\d{4}";
         var ret = new List<Transaction>();
         for (var i = 0; i < pdfTextLines.Count - 1; i++)
+        {
             if (Regex.IsMatch(pdfTextLines[i], datePattern) && Regex.IsMatch(pdfTextLines[i + 1], datePattern))
             {
                 var firstTransactionLine = pdfTextLines[i];
@@ -66,6 +66,7 @@ public sealed class SberPdfBank : IBank
                 
                 ret.Add(transaction);
             }
+        }
 
         return ret;
     }
@@ -114,7 +115,7 @@ public sealed class SberPdfBank : IBank
             // Преобразование в DateTime для даты
             var date = DateTime.ParseExact(dateString, "dd.MM.yyyy", CultureInfo.InvariantCulture);
             // Преобразование суммы в double
-            var sum = (-1) * double.Parse(sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, new CultureInfo("ru-RU"));
+            var sum = -1 * double.Parse(sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, new CultureInfo("ru-RU"));
 
             return (new Transaction(bankAccount, date, sum, null, 0, authCode, description), timeString);
         }
