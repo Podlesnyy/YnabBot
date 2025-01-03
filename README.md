@@ -6,4 +6,4 @@ You can read about my [motivation](https://github.com/Podlesnyy/YnabBot/wiki/YNA
 
 Although using the bot is free, you can help me host it in a cloud by making donations [paypal.me/podlesnyy](https://www.paypal.me/podlesnyy)
 
-Any suggestions are welcome [@kto_kot](https://t.me/kto_kot)
+Any suggestions are welcome [@MikhalIvanych](https://t.me/MikhalIvanych)
