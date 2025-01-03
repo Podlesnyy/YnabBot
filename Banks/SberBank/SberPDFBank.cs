@@ -17,7 +17,7 @@ public sealed class SberPdfBank : IBank
 
     public bool IsItYour(string fileName)
     {
-        return fileName.Contains("Выписка по сч");
+        return fileName.Contains("Выписка_по_сч") || fileName.Contains("Выписка по сч");
     }
 
     public string FileEncoding => "utf-8";
@@ -55,13 +55,14 @@ public sealed class SberPdfBank : IBank
             if (Regex.IsMatch(pdfTextLines[i], datePattern) && Regex.IsMatch(pdfTextLines[i + 1], datePattern))
             {
                 var firstTransactionLine = pdfTextLines[i];
-                var transaction = CreateTransaction(firstTransactionLine);
+                var (transaction, time) = CreateTransaction(firstTransactionLine);
                 var secondTransactionLine = pdfTextLines[++i];
-                transaction.Payee = GetPayee(secondTransactionLine);
+                transaction.Memo = GetMemo(secondTransactionLine);
                 while (pdfTextLines[++i].Trim() != "")
                 {
-                    transaction.Payee += " " + pdfTextLines[i].Trim();
+                    transaction.Memo += " " + pdfTextLines[i].Trim();
                 }
+                transaction.Memo += " " + time;
                 
                 ret.Add(transaction);
             }
@@ -69,7 +70,7 @@ public sealed class SberPdfBank : IBank
         return ret;
     }
 
-    private string GetPayee(string secondTransactionLine)
+    private string GetMemo(string secondTransactionLine)
     {
         const string pattern = @"\d{2}\.\d{2}\.\d{4}\s+(.*)";
         var regex = new Regex(pattern);
@@ -92,7 +93,7 @@ public sealed class SberPdfBank : IBank
         return textAbsorber.Text.Split(["\r\n", "\r", "\n"], StringSplitOptions.None).ToList();
     }
 
-    private Transaction CreateTransaction(string firstTransactionLine)
+    private (Transaction, string timeString) CreateTransaction(string firstTransactionLine)
     {
         const string pattern = @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+)\s+(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
 
@@ -115,7 +116,7 @@ public sealed class SberPdfBank : IBank
             // Преобразование суммы в double
             var sum = (-1) * double.Parse(sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, new CultureInfo("ru-RU"));
 
-            return new Transaction(bankAccount, date, sum, description + " " + timeString, 0, authCode, null);
+            return (new Transaction(bankAccount, date, sum, null, 0, authCode, description), timeString);
         }
 
         throw new Exception("Не удалось распарсить строку транзакции.");
