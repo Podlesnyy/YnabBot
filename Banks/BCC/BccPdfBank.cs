@@ -10,10 +10,9 @@ using Aspose.Pdf.Text;
 
 namespace Adp.Banks.BCC;
 
-public sealed class BccPdfBank : IBank
+public sealed partial class BccPdfBank : IBank
 {
     private string bankAccount;
-
     public bool IsItYour(string fileName)
     {
         return fileName.Contains("pkg_w_mb_main");
@@ -34,14 +33,9 @@ public sealed class BccPdfBank : IBank
     {
         var ret = new List<Transaction>();
 
-        const string patternKzt =
-            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+\d{2}:\d{2}:\d{2}\s+\d{2}\.\d{2}\.\d{4}\s+(?<text>.+?)\s+-?\d[\d\s.,]*\s+KZT\s+(?<number>-?\d[\d\s]+,\d\d)\s";
-        const string patternOther =
-            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<description>.+?)\s+(?<amount>-?\d+,\d+)\s+\d+,\d+";
-
         foreach (var line in pdfTextLines)
         {
-            var match = Regex.Match(line, patternKzt);
+            var match = RegexKzt().Match(line);
 
             if (match.Success)
             {
@@ -49,7 +43,7 @@ public sealed class BccPdfBank : IBank
                 continue;
             }
 
-            match = Regex.Match(line, patternOther);
+            match = RegexOthers().Match(line);
 
             if (!match.Success) continue;
             ret.Add(GetFromAnother(match));
@@ -61,8 +55,9 @@ public sealed class BccPdfBank : IBank
     private Transaction GetFromAnother(Match match)
     {
         var date = DateTime.ParseExact(match.Groups["date"].Value, "dd.MM.yyyy", CultureInfo.InvariantCulture);
-        var description = match.Groups["description"].Value.Trim();
-        var amount = double.Parse(match.Groups["amount"].Value.Replace(',', '.'), CultureInfo.InvariantCulture);
+        var description = match.Groups["desc"].Value.Trim();
+        var amountString = match.Groups["amount"].Value.Replace(" ", "").Replace(',', '.');
+        var amount = -1 * double.Parse(amountString, CultureInfo.InvariantCulture);
 
         return new Transaction(bankAccount, date, amount, description, 0, null, null);
     }
@@ -94,4 +89,9 @@ public sealed class BccPdfBank : IBank
 
         return textAbsorber.Text.Split(["\r\n", "\r", "\n"], StringSplitOptions.None).ToList();
     }
+
+    [GeneratedRegex(@"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<desc>.*?)\s*(?<amount>-?\d[\d\s]*,\d{2})")]
+    private static partial Regex RegexOthers();
+    [GeneratedRegex(@"(?<date>\d{2}\.\d{2}\.\d{4})\s+\d{2}:\d{2}:\d{2}\s+\d{2}\.\d{2}\.\d{4}\s+(?<text>.+?)\s+-?\d[\d\s.,]*\s+KZT\s+(?<number>-?\d[\d\s]+,\d\d)\s")]
+    private static partial Regex RegexKzt();
 }
