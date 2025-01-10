@@ -71,3 +71,4 @@ packages/
 *.generated.cs
 /.vs/
 .env
+.idea/.idea.YnabBot/.idea/workspace.xml

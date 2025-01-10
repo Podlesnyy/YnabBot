@@ -37,7 +37,7 @@
     ".NET Project.BankTest.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "sber",
+    "git-widget-placeholder": "master",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -110,7 +110,7 @@
       <updated>1735822036669</updated>
       <workItem from="1735822037878" duration="423000" />
       <workItem from="1735822469501" duration="10517000" />
-      <workItem from="1735886897662" duration="3611000" />
+      <workItem from="1735886897662" duration="3647000" />
     </task>
     <servers />
   </component>
@@ -126,13 +126,13 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/BankTest/Program.cs</url>
-          <line>11</line>
+          <line>12</line>
           <properties documentPath="$PROJECT_DIR$/BankTest/Program.cs" containingFunctionPresentation="">
             <startOffsets>
-              <option value="494" />
+              <option value="542" />
             </startOffsets>
             <endOffsets>
-              <option value="513" />
+              <option value="561" />
             </endOffsets>
           </properties>
           <option name="timeStamp" value="1" />
