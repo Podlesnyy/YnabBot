@@ -58,10 +58,7 @@ public sealed class SberPdfBank : IBank
                 var (transaction, time) = CreateTransaction(firstTransactionLine);
                 var secondTransactionLine = pdfTextLines[++i];
                 transaction.Memo = GetMemo(secondTransactionLine);
-                while (pdfTextLines[++i].Trim() != "")
-                {
-                    transaction.Memo += " " + pdfTextLines[i].Trim();
-                }
+                while (pdfTextLines[++i].Trim() != "") transaction.Memo += " " + pdfTextLines[i].Trim();
                 transaction.Memo += " " + time;
                 
                 ret.Add(transaction);
@@ -76,10 +73,7 @@ public sealed class SberPdfBank : IBank
         const string pattern = @"\d{2}\.\d{2}\.\d{4}\s+(.*)";
         var regex = new Regex(pattern);
         var match = regex.Match(secondTransactionLine);
-        if (match.Success)
-        {
-            return match.Groups[1].Value.Trim(); // Возвращаем текст после даты без лишних пробелов
-        }
+        if (match.Success) return match.Groups[1].Value.Trim(); // Возвращаем текст после даты без лишних пробелов
 
         throw new Exception("Не удалось распарсить строку получателя.");
     }
@@ -107,10 +101,7 @@ public sealed class SberPdfBank : IBank
             var description = match.Groups["description"].Value.Trim();
             var authCode = match.Groups["authCode"].Value;
             var sumString = match.Groups["sum"].Value.Replace(" ", "").Replace("\u00A0", ""); // Убираем пробелы для корректного парсинга числа
-            if (!sumString.StartsWith("+"))
-            {
-                sumString = "-" + sumString;
-            }
+            if (!sumString.StartsWith("+")) sumString = "-" + sumString;
 
             // Преобразование в DateTime для даты
             var date = DateTime.ParseExact(dateString, "dd.MM.yyyy", CultureInfo.InvariantCulture);

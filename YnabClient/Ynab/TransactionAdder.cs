@@ -91,6 +91,6 @@ internal sealed class TransactionAdder
 
     private TransactionDetail GetHoldTransaction()
     {
-        return transactionsWithSameAmountAndDate.FirstOrDefault( item => item.Id != null && item.ImportId == null && ( hasTransactionId && !item.Memo.Contains( id ) || !string.IsNullOrEmpty( payee ) ) );
+        return transactionsWithSameAmountAndDate.FirstOrDefault( item => item.Id != null && item.ImportId == null && ( (hasTransactionId && !item.Memo.Contains( id )) || !string.IsNullOrEmpty( payee ) ) );
     }
 }
