@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
 using Aspose.Pdf;
 using Aspose.Pdf.Text;
@@ -15,6 +16,7 @@ namespace Adp.Banks.BCC;
 public sealed class BccPdfBank : IBank
 {
     private static readonly CultureInfo RussianCi = new("ru");
+    private string bankAccount;
 
     public bool IsItYour( string fileName ) => fileName.Contains( "pkg_w_mb_main" );
 
@@ -22,74 +24,65 @@ public sealed class BccPdfBank : IBank
 
     public List< Transaction > Parse( MemoryStream fileContent )
     {
-        var tablesText = ExtractFromPdfFile( fileContent );
-        var csvString = ConvertToCsv( tablesText );
-        var transactions = GetTransactions( csvString );
+        var extractFromPdfFile = ExtractFromPdfFile(fileContent);
+        GetBankAccount(extractFromPdfFile);
+        var transactions = GetTransactions(extractFromPdfFile);
 
         return transactions;
     }
-
-    private static List< Transaction > GetTransactions( string csvString )
+    
+    private List<Transaction> GetTransactions(List<string> pdfTextLines)
     {
-        using var reader = new StringReader( csvString );
-        var config = new CsvConfiguration( RussianCi ) { Delimiter = ",", HasHeaderRecord = true, BadDataFound = null };
-        using var csv = new CsvReader( reader, config );
-        csv.Context.RegisterClassMap< TransactionMap >();
-        return csv.GetRecords< Transaction >().ToList();
-    }
+        var ret = new List<Transaction>();
+        
+        const string pattern = @"(?<date>\d{2}\.\d{2}\.\d{4}(?: \d{2}:\d{2}:\d{2})?)\s*(?<text>.+?)\s+(?<summa>-?\d[\d\s]*,\d{2})";
+        //string pattern = @"(?<date>\d{2}\.\d{2}\.\d{4}(?: \d{2}:\d{2}:\d{2})?)\s*(?<text>.+?)\s+((?:-?\d[\d\s]*,\d{2}\s*)+)";
 
-    private string ConvertToCsv( IReadOnlyList< string > tablesText )
-    {
-        // Считываем строки из файла
-        var csvBuilder = new StringBuilder();
-
-        // Заголовок для CSV
-        csvBuilder.AppendLine( "Дата операции,Документ,Назначение платежа,Сумма операции" );
-
-        // Обработка строк
-        for ( var i = 0; i < tablesText.Count; i++ )
+        foreach (var line in pdfTextLines)
         {
-            var line = tablesText[ i ].Trim();
+            var match = Regex.Match(line, pattern);
 
-            // Пропускаем строки, начинающиеся с "ООО <ОЗОН БАНК>"
-            if ( line.StartsWith( "ООО <ОЗОН БАНК>", StringComparison.Ordinal ) || string.IsNullOrWhiteSpace( line ) )
-                continue;
+            if (!match.Success) continue;
+            
+            var dateParsed = DateTime.TryParseExact(
+                match.Groups["date"].Value,
+                ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"],
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var date
+            );
 
-            // Если строка соответствует началу новой записи (дата), собираем данные
-            if ( !DateTime.TryParse( line.Split( ' ' )[ 0 ], out _ ) )
-                continue;
-
-            // Проверяем, что следующие строки корректно собирают запись
-            var document = i + 1 < tablesText.Count ? tablesText[ i + 1 ].Trim() : string.Empty;
-            var description = i + 2 < tablesText.Count ? tablesText[ i + 2 ].Trim() : string.Empty;
-            var amount = i + 3 < tablesText.Count ? tablesText[ i + 3 ].Trim() : string.Empty;
-
-            // Добавляем запись в CSV
-            csvBuilder.AppendLine( $"\"{line}\",\"{document}\",\"{description}\",\"{amount}\"" );
-
-            // Пропускаем уже обработанные строки
-            i += 3;
-        }
-
-        return csvBuilder.ToString();
-    }
-
-    private static List< string > ExtractFromPdfFile( Stream fileContent )
-    {
-        var pdfDocument = new Document( fileContent );
-        var ret = new List< string >();
-        foreach ( var page in pdfDocument.Pages )
-        {
-            var absorber = new TableAbsorber();
-            absorber.Visit( page );
-
-            foreach ( var table in absorber.TableList )
+            if (!dateParsed)
             {
-                ret.AddRange( from row in table.RowList select row.CellList.Aggregate( "",
-                    static ( current, cell ) => cell.TextFragments.Aggregate( current, static ( current, fragment ) => fragment.Segments.Aggregate( current, static ( current, seg ) => current + seg.Text ) ) ) );
+                Console.WriteLine($"Ошибка парсинга даты для строки: {line}");
+                continue;
             }
-        }
 
+            // Получаем текст
+            var text = match.Groups["text"].Value.Trim();
+            
+            
+            // Парсим сумму
+            var summaString = match.Groups["summa"].Value.Replace(" ", ""); // Убираем пробелы в числе
+            var summa = -1 * double.Parse(summaString, new CultureInfo("ru-RU")); // Парсинг с учетом формата
+
+            ret.Add( new Transaction(bankAccount, date, summa, text, 0, null, null));
+        }
         return ret;
+    }
+    
+    private void GetBankAccount(List<string> extractFromPdfFile)
+    {
+        bankAccount = extractFromPdfFile[1].Trim();
+    }
+
+   private static List< string > ExtractFromPdfFile( Stream fileContent )
+    {
+        var pdfDocument = new Document(fileContent);
+        var textAbsorber = new TextAbsorber();
+
+        pdfDocument.Pages.Accept(textAbsorber);
+
+        return textAbsorber.Text.Split(["\r\n", "\r", "\n"], StringSplitOptions.None).ToList();
     }
 }
