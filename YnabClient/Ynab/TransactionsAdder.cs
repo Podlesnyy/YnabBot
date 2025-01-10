@@ -55,9 +55,7 @@ internal sealed class TransactionsAdder( API ynabApi, BudgetSummary budget, YNAB
 
         var updateTransaction = transactionAdder.GetUpdateTransaction();
         if ( updateTransaction != null )
-        {
             updateTransactions.Add( updateTransaction );
-        }
         else
         {
             var saveTransaction = transactionAdder.GetSaveTransaction();

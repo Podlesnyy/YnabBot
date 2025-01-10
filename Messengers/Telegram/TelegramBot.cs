@@ -40,9 +40,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
             botClient = new TelegramBotClient( token );
         }
         else
-        {
             botClient = new TelegramBotClient( token );
-        }
 
         var me = await botClient.GetMe();
         logger.Info( $"Hello, World! I am user {me.Id} and my name is {me.FirstName}." );
