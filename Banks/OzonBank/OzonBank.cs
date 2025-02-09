@@ -51,8 +51,8 @@ public sealed class OzonBank : IBank
             if ( line.StartsWith( "ООО <ОЗОН БАНК>", StringComparison.Ordinal ) || string.IsNullOrWhiteSpace( line ) )
                 continue;
 
-            // Если строка соответствует началу новой записи (дата), собираем данные
-            if ( !DateTime.TryParse( line.Split( ' ' )[ 0 ], out _ ) )
+
+            if (!DateTime.TryParseExact(line, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
                 continue;
 
             // Проверяем, что следующие строки корректно собирают запись

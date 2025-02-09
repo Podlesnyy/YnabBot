@@ -23,7 +23,7 @@ public sealed class YnabDbContext : DbContext
         var user = configuration[ "MYSQL_USER" ];
         var password = configuration[ "MYSQL_PASSWORD" ];
 
-        optionsBuilder.UseMySql( $"server=127.0.0.1;UserId={user};Password={password};database={database};", new MySqlServerVersion( new Version( 8, 0, 22 ) ) );
+        optionsBuilder.UseMySql( $"server=host.docker.internal;UserId={user};Password={password};database={database};", new MySqlServerVersion( new Version( 8, 0, 22 ) ) );
     }
 
     protected override void OnModelCreating( ModelBuilder modelBuilder )
