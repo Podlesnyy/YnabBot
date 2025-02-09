@@ -9,6 +9,6 @@ var bank = new OzonBank.OzonBank();
 // ReSharper disable once UnusedVariable
 //var trans = bank.Parse( new MemoryStream( File.ReadAllBytes("/Users/andr/Downloads/!pkg_w_mb_main (4).pdf") ) );
 //var trans = bank.Parse( new MemoryStream( File.ReadAllBytes("/Users/andr/Downloads/!pkg_w_mb_main.pdf") ) );
-var trans = bank.Parse(new MemoryStream(File.ReadAllBytes("/Users/andr/Downloads/ozonbank_document_9022954 (1).pdf")));
+var trans = bank.Parse( new MemoryStream( File.ReadAllBytes( "/Users/andr/Downloads/ozonbank_document_9022954 (1).pdf" ) ) );
 
 Console.ReadLine();
