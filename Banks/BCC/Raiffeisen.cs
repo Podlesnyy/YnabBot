@@ -20,7 +20,7 @@ public class Raiffeisen( string id ) : IBank
 
     public bool IsItYour( string fileName ) => fileName.Contains( $"{id}_account_statement_" );
 
-    public string FileEncoding => "windows-1251";
+    public string FileEncoding => "utf-8";
 
     public List< Transaction > Parse( string fileContent )
     {
@@ -33,10 +33,20 @@ public class Raiffeisen( string id ) : IBank
         {
             var raifSchet = $"raiffeisen_{id}";
             var date = csv.GetField< DateTime >( 0 );
-            var memo = csv.GetField< string >( 1 );
-            var sum = -1 * Convert.ToDouble( csv.GetField< string >( 5 ).Replace( " ", string.Empty ), CultureInfo.InvariantCulture );
+            var transId = csv.GetField< string >( 2 );
+            if (transId == string.Empty )
+                transId = null;
 
-            ret.Add( new Transaction( raifSchet, date, sum, memo, 0, null, null ) );
+            var postup = csv.GetField< string >( 3 );
+            var rasxod = csv.GetField< string >( 4 );
+            var sumStr = postup == string.Empty ? rasxod : $"-{postup}";
+            var sum = Convert.ToDouble( sumStr, RussianCi );
+
+            var memo = csv.GetField<string>(6);
+            var card = csv.GetField<string>(7);
+
+
+            ret.Add( new Transaction( raifSchet, date, sum, $"{memo}. Номер карты:{card}", 0, transId, memo) );
         }
 
         return ret;

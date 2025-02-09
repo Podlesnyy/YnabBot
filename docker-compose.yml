@@ -11,13 +11,15 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - dbdata:/var/lib/mysql
-  ynabbot:
+  ynabbotservice:
     depends_on:
        - db  
-    build: .
+    build:
+      context: .
+      dockerfile: YnabBotService/Dockerfile
     network_mode: host
     restart: always
-    image: adp/ynabbot
+    image: ${DOCKER_REGISTRY-}ynabbotservice
 
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}

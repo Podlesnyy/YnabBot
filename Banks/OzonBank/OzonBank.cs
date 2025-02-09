@@ -51,8 +51,7 @@ public sealed class OzonBank : IBank
             if ( line.StartsWith( "ООО <ОЗОН БАНК>", StringComparison.Ordinal ) || string.IsNullOrWhiteSpace( line ) )
                 continue;
 
-            // Если строка соответствует началу новой записи (дата), собираем данные
-            if ( !DateTime.TryParse( line.Split( ' ' )[ 0 ], out _ ) )
+            if ( !DateTime.TryParseExact( line, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out _ ) )
                 continue;
 
             // Проверяем, что следующие строки корректно собирают запись
@@ -80,10 +79,8 @@ public sealed class OzonBank : IBank
             absorber.Visit( page );
 
             foreach ( var table in absorber.TableList )
-            {
                 ret.AddRange( from row in table.RowList select row.CellList.Aggregate( "",
                     static ( current, cell ) => cell.TextFragments.Aggregate( current, static ( current, fragment ) => fragment.Segments.Aggregate( current, static ( current, seg ) => current + seg.Text ) ) ) );
-            }
         }
 
         return ret;

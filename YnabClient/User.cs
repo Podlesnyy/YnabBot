@@ -238,7 +238,7 @@ internal sealed class User
 
     private void OnAddTransactions( in ReplyInfo replyInfo, IReadOnlyCollection< Transaction > transactions )
     {
-        logger.Trace($"Transactios count = {transactions.Count}");
+        logger.Trace( $"Transactios count = {transactions.Count}" );
         foreach ( var transaction in transactions )
         {
             var accountSettings = dbUser.BankAccountToYnabAccounts.FirstOrDefault( item => item.BankAccount == transaction.BankAccount );
