@@ -80,10 +80,8 @@ public sealed class OzonBank : IBank
             absorber.Visit( page );
 
             foreach ( var table in absorber.TableList )
-            {
                 ret.AddRange( from row in table.RowList select row.CellList.Aggregate( "",
                     static ( current, cell ) => cell.TextFragments.Aggregate( current, static ( current, fragment ) => fragment.Segments.Aggregate( current, static ( current, seg ) => current + seg.Text ) ) ) );
-            }
         }
 
         return ret;

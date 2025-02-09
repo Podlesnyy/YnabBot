@@ -10,13 +10,11 @@ using Aspose.Pdf.Text;
 
 namespace Adp.Banks.BCC;
 
+// ReSharper disable once UnusedType.Global
 public sealed partial class BccPdfBank : IBank
 {
     private string bankAccount;
-    public bool IsItYour(string fileName)
-    {
-        return fileName.Contains("pkg_w_mb_main");
-    }
+    public bool IsItYour(string fileName) => fileName.Contains("pkg_w_mb_main");
 
     public string FileEncoding => "utf-8";
 
@@ -46,6 +44,7 @@ public sealed partial class BccPdfBank : IBank
             match = RegexOthers().Match(line);
 
             if (!match.Success) continue;
+
             ret.Add(GetFromAnother(match));
         }
 
@@ -75,7 +74,7 @@ public sealed partial class BccPdfBank : IBank
         return new Transaction(bankAccount, date, summa, text, 0, null, null);
     }
 
-    private void GetBankAccount(List<string> extractFromPdfFile)
+    private void GetBankAccount(IReadOnlyList< string > extractFromPdfFile)
     {
         bankAccount = extractFromPdfFile[1].Trim();
     }

@@ -10,14 +10,12 @@ using Aspose.Pdf.Text;
 
 namespace Adp.Banks.SberBank;
 
+// ReSharper disable once UnusedType.Global
 public sealed class SberPdfBank : IBank
 {
     private string bankAccount;
 
-    public bool IsItYour(string fileName)
-    {
-        return fileName.Contains("Выписка_по_сч") || fileName.Contains("Выписка по сч");
-    }
+    public bool IsItYour(string fileName) => fileName.Contains("Выписка_по_сч") || fileName.Contains("Выписка по сч");
 
     public string FileEncoding => "utf-8";
 
@@ -30,14 +28,14 @@ public sealed class SberPdfBank : IBank
         return transactions;
     }
 
-    private void GetBankAccount(List<string> extractFromPdfFile)
+    private void GetBankAccount(IEnumerable< string > extractFromPdfFile)
     {
             // Регулярное выражение для строки вида: "40817 810 8 3829 7144493"
             const string pattern = @"(\d{5} \d{3} \d{1} \d{4} \d{7})";
             var regex = new Regex(pattern);
 
             // Проход по массиву строк
-            foreach (var match in extractFromPdfFile.Select(str => regex.Match(str)).Where(match => match.Success))
+            foreach (var match in extractFromPdfFile.Select(str => regex.Match(str)).Where( static match => match.Success))
             {
                 bankAccount = match.Groups[1].Value;
                 return;
@@ -46,12 +44,11 @@ public sealed class SberPdfBank : IBank
             throw new Exception("Не удалось найти номер счета.");
     }
 
-    private List<Transaction> GetTransactions(List<string> pdfTextLines)
+    private List<Transaction> GetTransactions(IReadOnlyList< string > pdfTextLines)
     {
         const string datePattern = @"^\d{2}\.\d{2}\.\d{4}";
         var ret = new List<Transaction>();
         for (var i = 0; i < pdfTextLines.Count - 1; i++)
-        {
             if (Regex.IsMatch(pdfTextLines[i], datePattern) && Regex.IsMatch(pdfTextLines[i + 1], datePattern))
             {
                 var firstTransactionLine = pdfTextLines[i];
@@ -60,15 +57,14 @@ public sealed class SberPdfBank : IBank
                 transaction.Memo = GetMemo(secondTransactionLine);
                 while (pdfTextLines[++i].Trim() != "") transaction.Memo += " " + pdfTextLines[i].Trim();
                 transaction.Memo += " " + time;
-                
+
                 ret.Add(transaction);
             }
-        }
 
         return ret;
     }
 
-    private string GetMemo(string secondTransactionLine)
+    private static string GetMemo(string secondTransactionLine)
     {
         const string pattern = @"\d{2}\.\d{2}\.\d{4}\s+(.*)";
         var regex = new Regex(pattern);
@@ -94,23 +90,22 @@ public sealed class SberPdfBank : IBank
 
         var match = Regex.Match(firstTransactionLine, pattern);
 
-        if (match.Success)
-        {
-            var dateString = match.Groups["date"].Value;
-            var timeString = match.Groups["time"].Value;
-            var description = match.Groups["description"].Value.Trim();
-            var authCode = match.Groups["authCode"].Value;
-            var sumString = match.Groups["sum"].Value.Replace(" ", "").Replace("\u00A0", ""); // Убираем пробелы для корректного парсинга числа
-            if (!sumString.StartsWith("+")) sumString = "-" + sumString;
+        if ( !match.Success )
+            throw new Exception( "Не удалось распарсить строку транзакции." );
 
-            // Преобразование в DateTime для даты
-            var date = DateTime.ParseExact(dateString, "dd.MM.yyyy", CultureInfo.InvariantCulture);
-            // Преобразование суммы в double
-            var sum = -1 * double.Parse(sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, new CultureInfo("ru-RU"));
+        var dateString = match.Groups["date"].Value;
+        var timeString = match.Groups["time"].Value;
+        var description = match.Groups["description"].Value.Trim();
+        var authCode = match.Groups["authCode"].Value;
+        var sumString = match.Groups["sum"].Value.Replace(" ", "").Replace("\u00A0", ""); // Убираем пробелы для корректного парсинга числа
+        if (!sumString.StartsWith("+", StringComparison.Ordinal )) sumString = "-" + sumString;
 
-            return (new Transaction(bankAccount, date, sum, null, 0, authCode, description), timeString);
-        }
+        // Преобразование в DateTime для даты
+        var date = DateTime.ParseExact(dateString, "dd.MM.yyyy", CultureInfo.InvariantCulture);
+        // Преобразование суммы в double
+        var sum = -1 * double.Parse(sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, new CultureInfo("ru-RU"));
 
-        throw new Exception("Не удалось распарсить строку транзакции.");
+        return (new Transaction(bankAccount, date, sum, null, 0, authCode, description), timeString);
+
     }
 }

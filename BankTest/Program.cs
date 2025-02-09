@@ -1,8 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Text;
-using Adp.Banks.BCC;
-using Adp.Banks.SberBank;
 
 Encoding.RegisterProvider( CodePagesEncodingProvider.Instance );
 
