@@ -6,12 +6,6 @@
         "DOTNET_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true
-    },
-    "Container (Dockerfile)": {
-      "commandName": "Docker",
-      "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
-      }
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"
