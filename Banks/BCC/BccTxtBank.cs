@@ -10,7 +10,7 @@ public sealed partial class BccTxtBank : IBank
 {
     private string account;
 
-    public bool IsItYour(string fileName) => fileName.Contains("bcc") && fileName.Contains(".txt");
+    public bool IsItYour(string fileName) => fileName.Contains("bcc1") && fileName.Contains(".txt");
     public string FileEncoding => "utf-8";
 
     public List<Transaction> Parse(string fileContent)
