@@ -46,21 +46,23 @@ public sealed class SberPdfBank : IBank
 
     private List< Transaction > GetTransactions( IReadOnlyList< string > pdfTextLines )
     {
-        const string datePattern = @"^\d{2}\.\d{2}\.\d{4}";
+        const string datePattern = @"^\s*\d{2}\.\d{2}\.\d{4}";
         var ret = new List< Transaction >();
-        for ( var i = 0; i < pdfTextLines.Count - 1; i++ )
-            if ( Regex.IsMatch( pdfTextLines[ i ], datePattern ) && Regex.IsMatch( pdfTextLines[ i + 1 ], datePattern ) )
+        for (var i = 0; i < pdfTextLines.Count - 1; i++)
+        {
+            if (Regex.IsMatch(pdfTextLines[i], datePattern) && Regex.IsMatch(pdfTextLines[i + 1], datePattern))
             {
-                var firstTransactionLine = pdfTextLines[ i ];
-                var (transaction, time) = CreateTransaction( firstTransactionLine );
-                var secondTransactionLine = pdfTextLines[ ++i ];
-                transaction.Memo = GetMemo( secondTransactionLine );
-                while ( pdfTextLines[ ++i ].Trim() != "" )
-                    transaction.Memo += " " + pdfTextLines[ i ].Trim();
+                var firstTransactionLine = pdfTextLines[i];
+                var (transaction, time) = CreateTransaction(firstTransactionLine);
+                var secondTransactionLine = pdfTextLines[++i];
+                transaction.Memo = GetMemo(secondTransactionLine);
+                while (pdfTextLines[++i].Trim() != "")
+                    transaction.Memo += " " + pdfTextLines[i].Trim();
                 transaction.Memo += " " + time;
 
-                ret.Add( transaction );
+                ret.Add(transaction);
             }
+        }
 
         return ret;
     }
