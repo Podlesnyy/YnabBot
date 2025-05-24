@@ -50,7 +50,6 @@ public sealed class SberPdfBank : IBank
         var ret = new List< Transaction >();
         for (var i = 0; i < pdfTextLines.Count - 1; i++)
         {
-            Console.WriteLine(pdfTextLines[i]);
             if (Regex.IsMatch(pdfTextLines[i], datePattern) && Regex.IsMatch(pdfTextLines[i + 1], datePattern))
             {
                 var firstTransactionLine = pdfTextLines[i];
