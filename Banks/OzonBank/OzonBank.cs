@@ -51,7 +51,9 @@ public sealed class OzonBank : IBank
             if ( line.StartsWith( "ООО <ОЗОН БАНК>", StringComparison.Ordinal ) || string.IsNullOrWhiteSpace( line ) )
                 continue;
 
-            if ( !DateTime.TryParseExact( line, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out _ ) )
+            var formats = new[] { "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyyHH:mm:ss" };
+            DateTime transDate;
+            if (!DateTime.TryParseExact(line, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out transDate))
                 continue;
 
             // Проверяем, что следующие строки корректно собирают запись
@@ -60,7 +62,7 @@ public sealed class OzonBank : IBank
             var amount = i + 3 < tablesText.Count ? tablesText[ i + 3 ].Trim() : string.Empty;
 
             // Добавляем запись в CSV
-            csvBuilder.AppendLine( $"\"{line}\",\"{document}\",\"{description}\",\"{amount}\"" );
+            csvBuilder.AppendLine( $"\"{transDate.ToString("dd.MM.yyyy HH:mm:ss")}\",\"{document}\",\"{transDate.ToString("HH:mm:ss") + " " + description}\",\"{amount}\"" );
 
             // Пропускаем уже обработанные строки
             i += 3;
