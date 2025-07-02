@@ -6,8 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CsvHelper" Version="33.0.1" />
-		<PackageReference Include="EPPlus" Version="8.0.5" />
+		<PackageReference Include="CsvHelper" Version="33.1.0" />
+		<PackageReference Include="EPPlus" Version="8.0.7" />
 	</ItemGroup>
 
 	<ItemGroup>
