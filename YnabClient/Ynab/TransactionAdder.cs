@@ -10,6 +10,16 @@ namespace Adp.YnabClient.Ynab;
 
 internal sealed class TransactionAdder
 {
+    private readonly int amount;
+    private readonly DateTime date;
+    private readonly bool hasTransactionId;
+    private readonly string id;
+    private readonly Logger logger = LogManager.GetCurrentClassLogger();
+    private readonly int mcc;
+    private readonly string memo;
+    private readonly string payee;
+    private readonly List< TransactionDetail > transactionsWithSameAmountAndDate;
+
     public TransactionAdder( TransactionsResponse transactionSinceOldest, Transaction transaction )
     {
         id = transaction.Id;
@@ -24,16 +34,6 @@ internal sealed class TransactionAdder
         logger.Trace( "Old transaction with same amount and same date: " + JsonConvert.SerializeObject( transactionsWithSameAmountAndDate, Formatting.Indented ) );
     }
 
-    private readonly int amount;
-    private readonly DateTime date;
-    private readonly bool hasTransactionId;
-    private readonly string id;
-    private readonly Logger logger = LogManager.GetCurrentClassLogger();
-    private readonly int mcc;
-    private readonly string memo;
-    private readonly string payee;
-    private readonly List< TransactionDetail > transactionsWithSameAmountAndDate;
-
     public bool IsAddBefore() => ExistTransactionWithSameImportId() || ExistTransactionWithImportIdInsideMemo() || ExistTransactionWithNonEmptyPayeeName() || ExistTransactionWithEmptyImportIdAndTheSameMemo();
 
     public UpdateTransaction GetUpdateTransaction()
@@ -43,12 +43,12 @@ internal sealed class TransactionAdder
             return null;
 
         return new UpdateTransaction( holdTransaction.Id, holdTransaction.AccountId, holdTransaction.Date, holdTransaction.Amount, null, !string.IsNullOrEmpty( holdTransaction.PayeeName ) ? holdTransaction.PayeeName : payee,
-            holdTransaction.CategoryId, hasTransactionId ? $"{memo}:{id}" : memo, null, true, UpdateTransaction.FlagColorEnum.Purple );
+                                      holdTransaction.CategoryId, hasTransactionId ? $"{memo}:{id}" : memo, null, true, UpdateTransaction.FlagColorEnum.Purple );
     }
 
     public SaveTransaction GetSaveTransaction() =>
-        new(default, date, amount, payeeName: payee, memo: memo, approved: hasTransactionId, flagColor: hasTransactionId ? SaveTransaction.FlagColorEnum.Orange : SaveTransaction.FlagColorEnum.Red,
-            importId: hasTransactionId ? id : null);
+        new( Guid.Empty, date, amount, payeeName: payee, memo: memo, approved: hasTransactionId, flagColor: hasTransactionId ? SaveTransaction.FlagColorEnum.Orange : SaveTransaction.FlagColorEnum.Red,
+             importId: hasTransactionId ? id : null );
 
     private bool ExistTransactionWithEmptyImportIdAndTheSameMemo()
     {
@@ -91,6 +91,6 @@ internal sealed class TransactionAdder
 
     private TransactionDetail GetHoldTransaction()
     {
-        return transactionsWithSameAmountAndDate.FirstOrDefault( item => item.Id != null && item.ImportId == null && ( hasTransactionId && !item.Memo.Contains( id ) || !string.IsNullOrEmpty( payee ) ) );
+        return transactionsWithSameAmountAndDate.FirstOrDefault( item => item.Id != null && item.ImportId == null && ( ( hasTransactionId && !item.Memo.Contains( id ) ) || !string.IsNullOrEmpty( payee ) ) );
     }
 }

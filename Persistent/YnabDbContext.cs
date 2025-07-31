@@ -7,13 +7,13 @@ namespace Adp.Persistent;
 
 public sealed class YnabDbContext : DbContext
 {
+    private readonly IConfiguration configuration;
+
     public YnabDbContext( IConfiguration configuration )
     {
         this.configuration = configuration;
         Database.EnsureCreated();
     }
-
-    private readonly IConfiguration configuration;
 
     public DbSet< User > Users { get; set; }
 

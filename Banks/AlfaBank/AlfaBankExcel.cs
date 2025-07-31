@@ -15,7 +15,7 @@ public class AlfaBankExcel : IBank
     {
         var ret = new List< Transaction >();
 
-        ExcelPackage.License.SetNonCommercialPersonal("Ynab");
+        ExcelPackage.License.SetNonCommercialPersonal( "Ynab" );
 
         using var package = new ExcelPackage( stream );
         var worksheet = package.Workbook.Worksheets[ 0 ];

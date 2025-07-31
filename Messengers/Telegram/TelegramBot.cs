@@ -37,12 +37,9 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
             logger.Info( $"host = {host}" );
             var port = configuration.GetValue< int >( "YNABBOT_PROXY_PORT" );
             logger.Info( $"port = {port}" );
-            botClient = new TelegramBotClient( token );
         }
-        else
-        {
-            botClient = new TelegramBotClient( token );
-        }
+
+        botClient = new TelegramBotClient( token );
 
         var me = await botClient.GetMe();
         logger.Info( $"Hello, World! I am user {me.Id} and my name is {me.FirstName}." );
@@ -50,7 +47,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
         cts = new CancellationTokenSource();
 
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
-        var receiverOptions = new ReceiverOptions { AllowedUpdates = [], DropPendingUpdates = true };
+        var receiverOptions = new ReceiverOptions { AllowedUpdates = [ ], DropPendingUpdates = true };
 
         botClient.StartReceiving( ( _, update, _ ) => HandleUpdateAsync( update ), ( _, exception, _ ) => PollingErrorHandler( exception ), receiverOptions, cts.Token );
     }
@@ -79,7 +76,7 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
                 return;
 
             await botClient.SendMessage( Convert.ToInt64( replyInfo.ChatId ), message, replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( replyInfo.MessageId ) }, replyMarkup: new ReplyKeyboardRemove(),
-                parseMode: ParseMode.Html );
+                                         parseMode: ParseMode.Html );
         }
         catch ( Exception e )
         {
@@ -105,10 +102,10 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
     private Task PollingErrorHandler( Exception exception )
     {
         var errorMessage = exception switch
-        {
-            ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
-            _ => exception.ToString()
-        };
+                           {
+                               ApiRequestException apiRequestException => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+                               _ => exception.ToString(),
+                           };
 
         logger.Error( errorMessage );
         return Task.CompletedTask;

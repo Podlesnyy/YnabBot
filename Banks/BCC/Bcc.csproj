@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspose.PDF" Version="25.6.1" />
+    <PackageReference Include="Aspose.PDF" Version="25.7.0" />
     <PackageReference Include="CsvHelper" Version="33.1.0" />
   </ItemGroup>
 

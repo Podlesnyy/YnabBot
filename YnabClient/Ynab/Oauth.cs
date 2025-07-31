@@ -18,13 +18,9 @@ public sealed class Oauth( IConfiguration configuration )
     public AccessTokenInfo GetAccessToken( string authCode )
     {
         var values = new Dictionary< string, string >
-        {
-            { "client_id", ynabClientId },
-            { "client_secret", ynabClientSecret },
-            { "redirect_uri", redirectUri },
-            { "grant_type", "authorization_code" },
-            { "code", authCode }
-        };
+                     {
+                         { "client_id", ynabClientId }, { "client_secret", ynabClientSecret }, { "redirect_uri", redirectUri }, { "grant_type", "authorization_code" }, { "code", authCode },
+                     };
         var content = new FormUrlEncodedContent( values );
 
         const string authUrl = $"{BaseYnabUri}token";
