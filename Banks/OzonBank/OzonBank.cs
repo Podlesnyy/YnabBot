@@ -10,7 +10,7 @@ namespace OzonBank;
 
 public sealed class OzonBank : IBank
 {
-    private static readonly CultureInfo RussianCi = new("ru");
+    private static readonly CultureInfo RussianCi = new( "ru" );
 
     public bool IsItYour( string fileName ) => fileName.Contains( "ozonbank" );
 
@@ -34,7 +34,7 @@ public sealed class OzonBank : IBank
         return csv.GetRecords< Transaction >().ToList();
     }
 
-    private string ConvertToCsv( IReadOnlyList< string > tablesText )
+    private static string ConvertToCsv( IReadOnlyList< string > tablesText )
     {
         // Считываем строки из файла
         var csvBuilder = new StringBuilder();
@@ -52,8 +52,7 @@ public sealed class OzonBank : IBank
                 continue;
 
             var formats = new[] { "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyyHH:mm:ss" };
-            DateTime transDate;
-            if (!DateTime.TryParseExact(line, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out transDate))
+            if ( !DateTime.TryParseExact( line, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var transDate ) )
                 continue;
 
             // Проверяем, что следующие строки корректно собирают запись
@@ -62,7 +61,7 @@ public sealed class OzonBank : IBank
             var amount = i + 3 < tablesText.Count ? tablesText[ i + 3 ].Trim() : string.Empty;
 
             // Добавляем запись в CSV
-            csvBuilder.AppendLine( $"\"{transDate.ToString("dd.MM.yyyy HH:mm:ss")}\",\"{document}\",\"{transDate.ToString("HH:mm:ss") + " " + description}\",\"{amount}\"" );
+            csvBuilder.AppendLine( $"\"{transDate.ToString( "dd.MM.yyyy HH:mm:ss" )}\",\"{document}\",\"{transDate.ToString( "HH:mm:ss" ) + " " + description}\",\"{amount}\"" );
 
             // Пропускаем уже обработанные строки
             i += 3;
@@ -81,8 +80,10 @@ public sealed class OzonBank : IBank
             absorber.Visit( page );
 
             foreach ( var table in absorber.TableList )
-                ret.AddRange( from row in table.RowList select row.CellList.Aggregate( "",
-                    static ( current, cell ) => cell.TextFragments.Aggregate( current, static ( current, fragment ) => fragment.Segments.Aggregate( current, static ( current, seg ) => current + seg.Text ) ) ) );
+                ret.AddRange( from row in table.RowList
+                              select row.CellList.Aggregate( "",
+                                                             static ( current, cell ) =>
+                                                                 cell.TextFragments.Aggregate( current, static ( current, fragment ) => fragment.Segments.Aggregate( current, static ( current, seg ) => current + seg.Text ) ) ) );
         }
 
         return ret;

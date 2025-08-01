@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Adp.Banks.Interfaces;
 using NLog;
 using YNAB.SDK;
@@ -10,14 +11,14 @@ namespace Adp.YnabClient.Ynab;
 
 internal sealed class Account
 {
+    private readonly Logger logger = LogManager.GetCurrentClassLogger();
+
+    private readonly Lock objLock = new();
+
     public Account()
     {
         logger.Info( "Init YNAB API" );
     }
-
-    private readonly Logger logger = LogManager.GetCurrentClassLogger();
-
-    private readonly object objLock = new();
 
     public Dictionary< BudgetSummary, List< YNAB.SDK.Model.Account > > DicAccounts { get; private set; } = new();
 

@@ -8,7 +8,7 @@ namespace Adp.Banks.BCC;
 
 public class Kaspi : IBank
 {
-    private static readonly CultureInfo RussianCi = new("ru");
+    private static readonly CultureInfo RussianCi = new( "ru" );
     public bool IsItYour( string fileName ) => fileName.Contains( "kaspi" );
 
     public string FileEncoding => "utf-8";

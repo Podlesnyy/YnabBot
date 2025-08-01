@@ -48,21 +48,19 @@ public sealed class SberPdfBank : IBank
     {
         const string datePattern = @"^\s*\d{2}\.\d{2}\.\d{4}";
         var ret = new List< Transaction >();
-        for (var i = 0; i < pdfTextLines.Count - 1; i++)
-        {
-            if (Regex.IsMatch(pdfTextLines[i], datePattern) && Regex.IsMatch(pdfTextLines[i + 1], datePattern))
+        for ( var i = 0; i < pdfTextLines.Count - 1; i++ )
+            if ( Regex.IsMatch( pdfTextLines[ i ], datePattern ) && Regex.IsMatch( pdfTextLines[ i + 1 ], datePattern ) )
             {
-                var firstTransactionLine = pdfTextLines[i];
-                var (transaction, time) = CreateTransaction(firstTransactionLine);
-                var secondTransactionLine = pdfTextLines[++i];
-                transaction.Memo = GetMemo(secondTransactionLine);
-                while (pdfTextLines[++i].Trim() != "")
-                    transaction.Memo += " " + pdfTextLines[i].Trim();
+                var firstTransactionLine = pdfTextLines[ i ];
+                var (transaction, time) = CreateTransaction( firstTransactionLine );
+                var secondTransactionLine = pdfTextLines[ ++i ];
+                transaction.Memo = GetMemo( secondTransactionLine );
+                while ( pdfTextLines[ ++i ].Trim() != "" )
+                    transaction.Memo += " " + pdfTextLines[ i ].Trim();
                 transaction.Memo += " " + time;
 
-                ret.Add(transaction);
+                ret.Add( transaction );
             }
-        }
 
         return ret;
     }
@@ -85,7 +83,7 @@ public sealed class SberPdfBank : IBank
 
         pdfDocument.Pages.Accept( textAbsorber );
 
-        return textAbsorber.Text.Split( ["\r\n", "\r", "\n"], StringSplitOptions.None ).ToList();
+        return textAbsorber.Text.Split( [ "\r\n", "\r", "\n" ], StringSplitOptions.None ).ToList();
     }
 
     private (Transaction, string timeString) CreateTransaction( string firstTransactionLine )

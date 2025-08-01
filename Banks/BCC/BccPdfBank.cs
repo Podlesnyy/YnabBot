@@ -86,7 +86,7 @@ public sealed partial class BccPdfBank : IBank
 
         pdfDocument.Pages.Accept( textAbsorber );
 
-        return textAbsorber.Text.Split( ["\r\n", "\r", "\n"], StringSplitOptions.None ).ToList();
+        return textAbsorber.Text.Split( [ "\r\n", "\r", "\n" ], StringSplitOptions.None ).ToList();
     }
 
     [GeneratedRegex( @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<desc>.*?)\s*(?<amount>-?\d[\d\s]*,\d{2})" )]

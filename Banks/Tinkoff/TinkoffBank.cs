@@ -27,10 +27,10 @@ public class TinkoffBank : IBank
         {
             var acctid = acctidNode.InnerText;
 
-            var accountNode = acctidNode.ParentNode.ParentNode;
-            var transactions = accountNode.SelectNodes( ".//STMTTRN" );
+            var accountNode = acctidNode.ParentNode!.ParentNode;
+            var transactions = accountNode!.SelectNodes( ".//STMTTRN" );
 
-            foreach ( XmlNode node in transactions )
+            foreach ( XmlNode node in transactions! )
             {
                 var dateTime = DateTime.ParseExact( node.SelectSingleNode( "DTPOSTED" )?.InnerText[ ..14 ]!, "yyyyMMddHHmmss", null );
                 var memo = node.SelectSingleNode( "MEMO" )?.InnerText;

@@ -16,22 +16,6 @@ namespace Adp.YnabClient;
 
 public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
 {
-    public MessageFromBotToYnabConverter( IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, Oauth oauth )
-    {
-        this.messageSender = messageSender;
-        this.banks = banks;
-        this.dbContext = dbContext;
-
-        this.oauth = oauth;
-        users = dbContext.Users.Include( static item => item.BankAccountToYnabAccounts ).
-                          ThenInclude( static item => item.YnabAccount ).
-                          Include( static item => item.DefaultYnabAccount ).
-                          Include( static item => item.Access ).
-                          ToList();
-
-        Encoding.RegisterProvider( CodePagesEncodingProvider.Instance );
-    }
-
     private readonly IBank[] banks;
     private readonly YnabDbContext dbContext;
     private readonly Dictionary< string, User > dicYnabUsers = new();
@@ -40,6 +24,18 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
     private readonly IMessageSender messageSender;
     private readonly Oauth oauth;
     private readonly List< Domain.User > users;
+
+    public MessageFromBotToYnabConverter( IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, Oauth oauth )
+    {
+        this.messageSender = messageSender;
+        this.banks = banks;
+        this.dbContext = dbContext;
+
+        this.oauth = oauth;
+        users = dbContext.Users.Include( static item => item.BankAccountToYnabAccounts ).ThenInclude( static item => item.YnabAccount ).Include( static item => item.DefaultYnabAccount ).Include( static item => item.Access ).ToList();
+
+        Encoding.RegisterProvider( CodePagesEncodingProvider.Instance );
+    }
 
     public void Save()
     {
@@ -60,7 +56,7 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
         {
             case "/start":
                 messageSender.SendMessage( replyInfo,
-                    $"Welcome to bot for YNAB!{Environment.NewLine}This bot is not officially supported by YNAB in any way. Use of this bot could introduce problems into your budget that YNAB, through its official support channels, will not be able to troubleshoot or fix. Please use at your own risk!{Environment.NewLine}You will acknowledge this by using the /auth command" );
+                                           $"Welcome to bot for YNAB!{Environment.NewLine}This bot is not officially supported by YNAB in any way. Use of this bot could introduce problems into your budget that YNAB, through its official support channels, will not be able to troubleshoot or fix. Please use at your own risk!{Environment.NewLine}You will acknowledge this by using the /auth command" );
                 break;
             case "/auth":
                 GetUser( replyInfo ).AuthCommand( replyInfo );
@@ -132,12 +128,9 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
             return bank.Parse( stream ) ?? bank.Parse( Content( bank.FileEncoding ) );
 
         logger.Info( "Не могу найти банк по имени файла: " + fileName );
-        return [];
+        return [ ];
 
-        string Content( string enc )
-        {
-            return Encoding.GetEncoding( enc ).GetString( stream.ToArray() );
-        }
+        string Content( string enc ) => Encoding.GetEncoding( enc ).GetString( stream.ToArray() );
     }
 
     private User GetUser( ReplyInfo replyInfo ) => dicYnabUsers.ContainsKey( replyInfo.UserId ) ? dicYnabUsers[ replyInfo.UserId ] : CreateAndInitUser( replyInfo );
