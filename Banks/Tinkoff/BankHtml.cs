@@ -1,9 +1,9 @@
-﻿using Adp.Banks.Interfaces;
-using HtmlAgilityPack;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using Adp.Banks.Interfaces;
+using HtmlAgilityPack;
 using static System.Text.RegularExpressions.Regex;
 
 namespace Adp.Banks.Tinkoff;
