@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Aspose.PDF" Version="25.7.0" />
-		<PackageReference Include="CsvHelper" Version="33.1.0" />
-	</ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Aspose.PDF" Version="25.8.0"/>
+        <PackageReference Include="CsvHelper" Version="33.1.0"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Interfaces\Interfaces.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Interfaces\Interfaces.csproj"/>
+    </ItemGroup>
 
 </Project>

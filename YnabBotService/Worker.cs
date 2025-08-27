@@ -28,7 +28,10 @@ internal sealed class Worker( IConfiguration configuration ) : BackgroundService
 
         builder.RegisterType< YnabDbContext >().AsSelf().InstancePerLifetimeScope();
 
-        var assemblies = Directory.EnumerateFiles( AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly ).Select( Assembly.LoadFrom ).ToArray();
+        var assemblies = Directory
+                         .EnumerateFiles( AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly )
+                         .Select( Assembly.LoadFrom )
+                         .ToArray();
         builder.RegisterAssemblyTypes( assemblies ).AssignableTo< IBank >().AsImplementedInterfaces();
         var container = builder.Build();
 

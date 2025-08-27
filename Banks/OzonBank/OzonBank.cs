@@ -52,7 +52,8 @@ public sealed class OzonBank : IBank
                 continue;
 
             var formats = new[] { "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyyHH:mm:ss" };
-            if ( !DateTime.TryParseExact( line, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var transDate ) )
+            if ( !DateTime.TryParseExact( line, formats, CultureInfo.InvariantCulture, DateTimeStyles.None,
+                                          out var transDate ) )
                 continue;
 
             // Проверяем, что следующие строки корректно собирают запись
@@ -83,7 +84,10 @@ public sealed class OzonBank : IBank
                 ret.AddRange( from row in table.RowList
                               select row.CellList.Aggregate( "",
                                                              static ( current, cell ) =>
-                                                                 cell.TextFragments.Aggregate( current, static ( current, fragment ) => fragment.Segments.Aggregate( current, static ( current, seg ) => current + seg.Text ) ) ) );
+                                                                 cell.TextFragments.Aggregate( current,
+                                                                                               static ( current, fragment ) =>
+                                                                                                   fragment.Segments.Aggregate( current,
+                                                                                                                                static ( current, seg ) => current + seg.Text ) ) ) );
         }
 
         return ret;

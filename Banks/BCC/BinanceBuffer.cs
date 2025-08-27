@@ -23,7 +23,9 @@ public class BinanceBuffer : IBank
         // ReSharper disable once ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
         foreach ( var transPlain in list )
         {
-            var transList = transPlain.Split( Environment.NewLine ).Where( static str => !string.IsNullOrEmpty( str ) ).ToList();
+            var transList = transPlain.Split( Environment.NewLine )
+                                      .Where( static str => !string.IsNullOrEmpty( str ) )
+                                      .ToList();
             if ( transList.Count < 10 )
                 continue;
 
@@ -43,7 +45,8 @@ public class BinanceBuffer : IBank
             var exchange = Convert.ToDouble( exchangeStr, CultureInfo.InvariantCulture );
             var couterParty = transList[ 8 ];
             var date = Convert.ToDateTime( transList[ 2 ] );
-            var memo = $"{priceFromAnotherCurrency} {fiatType} по курсу {exchange}. Партнер {couterParty}. Order Number {id}";
+            var memo =
+                $"{priceFromAnotherCurrency} {fiatType} по курсу {exchange}. Партнер {couterParty}. Order Number {id}";
             ret.Add( new Transaction( schet, date, sum, memo, 0, id, type ) );
         }
 

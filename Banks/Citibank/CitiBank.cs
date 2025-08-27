@@ -19,7 +19,10 @@ public class CitiBank : IBank
 
     public List< Transaction > Parse( string fileContent )
     {
-        var transofrm = fileContent.Replace( "\",\"", ";" ).Replace( "\"", string.Empty ).Replace( "'", string.Empty ).Replace( Encoding.UTF8.GetString( Encoding.UTF8.GetPreamble() ), string.Empty );
+        var transofrm = fileContent.Replace( "\",\"", ";" )
+                                   .Replace( "\"", string.Empty )
+                                   .Replace( "'", string.Empty )
+                                   .Replace( Encoding.UTF8.GetString( Encoding.UTF8.GetPreamble() ), string.Empty );
         var config = new CsvConfiguration( RussianCi ) { Delimiter = ";", HasHeaderRecord = false, BadDataFound = null };
         var csv = new CsvReader( new StringReader( transofrm ), config );
         var ret = new List< Transaction >();

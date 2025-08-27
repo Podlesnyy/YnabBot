@@ -88,7 +88,8 @@ public sealed class SberPdfBank : IBank
 
     private (Transaction, string timeString) CreateTransaction( string firstTransactionLine )
     {
-        const string pattern = @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+)\s+(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
+        const string pattern =
+            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+)\s+(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
 
         var match = Regex.Match( firstTransactionLine, pattern );
 
@@ -99,14 +100,19 @@ public sealed class SberPdfBank : IBank
         var timeString = match.Groups[ "time" ].Value;
         var description = match.Groups[ "description" ].Value.Trim();
         var authCode = match.Groups[ "authCode" ].Value;
-        var sumString = match.Groups[ "sum" ].Value.Replace( " ", "" ).Replace( "\u00A0", "" ); // Убираем пробелы для корректного парсинга числа
+        var sumString =
+            match.Groups[ "sum" ]
+                 .Value.Replace( " ", "" )
+                 .Replace( "\u00A0", "" ); // Убираем пробелы для корректного парсинга числа
         if ( !sumString.StartsWith( "+", StringComparison.Ordinal ) )
             sumString = "-" + sumString;
 
         // Преобразование в DateTime для даты
         var date = DateTime.ParseExact( dateString, "dd.MM.yyyy", CultureInfo.InvariantCulture );
         // Преобразование суммы в double
-        var sum = -1 * double.Parse( sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, new CultureInfo( "ru-RU" ) );
+        var sum = -1
+                  * double.Parse( sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                                  new CultureInfo( "ru-RU" ) );
 
         return ( new Transaction( bankAccount, date, sum, null, 0, authCode, description ), timeString );
     }

@@ -12,6 +12,7 @@ namespace Adp.Banks.BCC;
 public class Binance : IBank
 {
     private static readonly CultureInfo RussianCi = new( "ru" );
+
     public bool IsItYour( string fileName ) => fileName.Contains( "part-" );
 
     public string FileEncoding => "utf-8";
@@ -40,7 +41,8 @@ public class Binance : IBank
 
             var date = csv.GetField< DateTime >( 10 );
 
-            var memo = $"{priceFromAnotherCurrency} {fiatType} по курсу {exchange}. Партнер {couterParty}. Order Number {id}";
+            var memo =
+                $"{priceFromAnotherCurrency} {fiatType} по курсу {exchange}. Партнер {couterParty}. Order Number {id}";
 
             ret.Add( new Transaction( schet, date, sum, memo, 0, id, type ) );
         }

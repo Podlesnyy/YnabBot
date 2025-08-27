@@ -25,14 +25,19 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
     private readonly Oauth oauth;
     private readonly List< Domain.User > users;
 
-    public MessageFromBotToYnabConverter( IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext, Oauth oauth )
+    public MessageFromBotToYnabConverter( IMessageSender messageSender, IBank[] banks, YnabDbContext dbContext,
+                                          Oauth oauth )
     {
         this.messageSender = messageSender;
         this.banks = banks;
         this.dbContext = dbContext;
 
         this.oauth = oauth;
-        users = dbContext.Users.Include( static item => item.BankAccountToYnabAccounts ).ThenInclude( static item => item.YnabAccount ).Include( static item => item.DefaultYnabAccount ).Include( static item => item.Access ).ToList();
+        users = dbContext.Users.Include( static item => item.BankAccountToYnabAccounts )
+                         .ThenInclude( static item => item.YnabAccount )
+                         .Include( static item => item.DefaultYnabAccount )
+                         .Include( static item => item.Access )
+                         .ToList();
 
         Encoding.RegisterProvider( CodePagesEncodingProvider.Instance );
     }
@@ -133,7 +138,10 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
         string Content( string enc ) => Encoding.GetEncoding( enc ).GetString( stream.ToArray() );
     }
 
-    private User GetUser( ReplyInfo replyInfo ) => dicYnabUsers.ContainsKey( replyInfo.UserId ) ? dicYnabUsers[ replyInfo.UserId ] : CreateAndInitUser( replyInfo );
+    private User GetUser( ReplyInfo replyInfo ) =>
+        dicYnabUsers.ContainsKey( replyInfo.UserId )
+            ? dicYnabUsers[ replyInfo.UserId ]
+            : CreateAndInitUser( replyInfo );
 
     private User CreateAndInitUser( ReplyInfo replyInfo )
     {

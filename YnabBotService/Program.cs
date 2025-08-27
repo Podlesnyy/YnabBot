@@ -14,7 +14,8 @@ file static class Program
     private static IHostBuilder CreateHostBuilder( string[] args )
     {
         return Host.CreateDefaultBuilder( args )
-                   .ConfigureAppConfiguration( static ( _, configurationBuilder ) => configurationBuilder.AddUserSecrets< Worker >() )
+                   .ConfigureAppConfiguration( static ( _, configurationBuilder ) =>
+                                                   configurationBuilder.AddUserSecrets< Worker >() )
                    .ConfigureServices( static ( _, services ) => services.AddHostedService< Worker >() );
     }
 }

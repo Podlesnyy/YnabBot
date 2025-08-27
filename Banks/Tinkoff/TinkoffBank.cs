@@ -32,7 +32,8 @@ public class TinkoffBank : IBank
 
             foreach ( XmlNode node in transactions! )
             {
-                var dateTime = DateTime.ParseExact( node.SelectSingleNode( "DTPOSTED" )?.InnerText[ ..14 ]!, "yyyyMMddHHmmss", null );
+                var dateTime = DateTime.ParseExact( node.SelectSingleNode( "DTPOSTED" )?.InnerText[ ..14 ]!,
+                                                    "yyyyMMddHHmmss", null );
                 var memo = node.SelectSingleNode( "MEMO" )?.InnerText;
                 var id = node.SelectSingleNode( "FITID" )?.InnerText;
                 var sum = double.Parse( node.SelectSingleNode( "TRNAMT" )?.InnerText!, CultureInfo.InvariantCulture ) * -1;

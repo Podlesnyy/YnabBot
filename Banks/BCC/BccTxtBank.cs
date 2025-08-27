@@ -11,6 +11,7 @@ public sealed partial class BccTxtBank : IBank
     private string account;
 
     public bool IsItYour( string fileName ) => fileName.Contains( "bcc1" ) && fileName.Contains( ".txt" );
+
     public string FileEncoding => "utf-8";
 
     public List< Transaction > Parse( string fileContent )
@@ -35,7 +36,9 @@ public sealed partial class BccTxtBank : IBank
                 throw new Exception( $"Bad transaction {transString}" );
 
             var date = DateTime.ParseExact( match.Groups[ 1 ].Value, "dd.MM.yyyy", CultureInfo.InvariantCulture );
-            var amount = -1 * double.Parse( match.Groups[ 3 ].Value.Trim().Replace( " ", "" ).Replace( ",", "." ), CultureInfo.InvariantCulture );
+            var amount = -1
+                         * double.Parse( match.Groups[ 3 ].Value.Trim().Replace( " ", "" ).Replace( ",", "." ),
+                                         CultureInfo.InvariantCulture );
             var description = match.Groups[ 2 ].Value.Trim();
 
             ret.Add( new Transaction( account, date, amount, description, 0, null, null ) );

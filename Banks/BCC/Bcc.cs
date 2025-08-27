@@ -27,6 +27,7 @@ public class BccBank : IBank
     }
 
     public bool IsItYour( string fileName ) => fileName.Contains( fileNamePart );
+
     public string FileEncoding => "utf-8";
 
     public List< Transaction > Parse( string fileContent ) =>

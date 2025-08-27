@@ -14,6 +14,7 @@ namespace Adp.Banks.BCC;
 public sealed partial class BccPdfBank : IBank
 {
     private string bankAccount;
+
     public bool IsItYour( string fileName ) => fileName.Contains( "pkg_w_mb_main" );
 
     public string FileEncoding => "utf-8";
@@ -69,7 +70,9 @@ public sealed partial class BccPdfBank : IBank
         // Получаем текст
         var text = match.Groups[ "text" ].Value.Trim();
         // Получаем число и заменяем запятую на точку для преобразования
-        var summa = -1 * double.Parse( match.Groups[ "number" ].Value.Replace( " ", "" ).Replace( ",", "." ), CultureInfo.InvariantCulture );
+        var summa = -1
+                    * double.Parse( match.Groups[ "number" ].Value.Replace( " ", "" ).Replace( ",", "." ),
+                                    CultureInfo.InvariantCulture );
 
         return new Transaction( bankAccount, date, summa, text, 0, null, null );
     }

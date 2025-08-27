@@ -23,7 +23,8 @@ public class AlfaBankExcel : IBank
 
         for ( var row = 2; row < rowCount; row++ ) // Предполагается, что первая строка содержит заголовки
         {
-            var operationDate = DateTime.ParseExact( worksheet.Cells[ row, 1 ].Text, "dd.MM.yyyy", CultureInfo.InvariantCulture );
+            var operationDate =
+                DateTime.ParseExact( worksheet.Cells[ row, 1 ].Text, "dd.MM.yyyy", CultureInfo.InvariantCulture );
             var accountNumber = worksheet.Cells[ row, 4 ].Text;
             //var cardName = worksheet.Cells[ row, 5 ].Text;
             var cardNumber = worksheet.Cells[ row, 6 ].Text;
@@ -32,7 +33,9 @@ public class AlfaBankExcel : IBank
             //var currency = worksheet.Cells[ row, 9 ].Text;
             //var status = worksheet.Cells[ row, 10 ].Text;
             var category = worksheet.Cells[ row, 11 ].Text;
-            var mcc = string.IsNullOrEmpty( worksheet.Cells[ row, 12 ].Text ) ? 0 : int.Parse( worksheet.Cells[ row, 12 ].Text );
+            var mcc = string.IsNullOrEmpty( worksheet.Cells[ row, 12 ].Text )
+                          ? 0
+                          : int.Parse( worksheet.Cells[ row, 12 ].Text );
             var type = worksheet.Cells[ row, 13 ].Text;
             //var Comment = worksheet.Cells[ row, 14 ].Text;
             var sum = type == "Пополнение" ? amount * -1 : amount;

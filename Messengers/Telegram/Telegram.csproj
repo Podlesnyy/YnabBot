@@ -1,22 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Adp.Messengers.Telegram</RootNamespace>
-    <AssemblyName>Messengers.Telegram</AssemblyName>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <RootNamespace>Adp.Messengers.Telegram</RootNamespace>
+        <AssemblyName>Messengers.Telegram</AssemblyName>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath></OutputPath>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <OutputPath></OutputPath>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NLog" Version="6.0.2" />
-    <PackageReference Include="Telegram.Bot" Version="22.6.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="NLog" Version="6.0.3"/>
+        <PackageReference Include="Telegram.Bot" Version="22.6.2"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Interfaces\Interfaces.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Interfaces\Interfaces.csproj"/>
+    </ItemGroup>
 
 </Project>

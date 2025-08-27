@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using Adp.Banks.Interfaces;
 using HtmlAgilityPack;
@@ -104,15 +103,6 @@ public sealed class YandexBankHtml : IBank
         var lastSegment = path.Split( '/' )[ ^2 ];
         // убираем расширение → "savings_light"
         return Path.GetFileNameWithoutExtension( lastSegment );
-    }
-
-
-    private static string Normalize( string input )
-    {
-        // Паттерн — ищем любую из подстрок
-        const string pattern = "(Black Premium|Накопительный счет)";
-        var match = Match( input, pattern );
-        return match.Success ? match.Value : input;
     }
 
     private static double Convert( string input )

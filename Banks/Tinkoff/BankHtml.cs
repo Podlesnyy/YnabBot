@@ -37,13 +37,19 @@ public sealed class BankHtml : IBank
             }
 
             // При встрече блока операции парсим нужные поля
-            if ( node.Name != "div" || !node.GetAttributeValue( "aria-label", "" ).StartsWith( "Детали операции", StringComparison.Ordinal ) )
+            if ( node.Name != "div"
+                 || !node.GetAttributeValue( "aria-label", "" )
+                         .StartsWith( "Детали операции", StringComparison.Ordinal ) )
                 continue;
 
-            var titleNode = node.SelectSingleNode( ".//span[@data-qa-type='atom-operations-feed-operation-title']" ).InnerText.Trim();
-            var amountNode = node.SelectSingleNode( ".//span[@data-qa-type='atom-operations-feed-operation-amount']" ).InnerText.Trim();
-            var categoryNode = node.SelectSingleNode( ".//p[@data-qa-type='atom-operations-feed-operation-subtitle']" ).InnerText.Trim();
-            var descNode = node.SelectSingleNode( ".//div[@data-qa-type='atom-operations-feed-operation-description']" ).InnerText.Trim();
+            var titleNode = node.SelectSingleNode( ".//span[@data-qa-type='atom-operations-feed-operation-title']" )
+                                .InnerText.Trim();
+            var amountNode = node.SelectSingleNode( ".//span[@data-qa-type='atom-operations-feed-operation-amount']" )
+                                 .InnerText.Trim();
+            var categoryNode = node.SelectSingleNode( ".//p[@data-qa-type='atom-operations-feed-operation-subtitle']" )
+                                   .InnerText.Trim();
+            var descNode = node.SelectSingleNode( ".//div[@data-qa-type='atom-operations-feed-operation-description']" )
+                               .InnerText.Trim();
 
             DateTime date;
             if ( string.Equals( currentDate, "Сегодня", StringComparison.OrdinalIgnoreCase ) )
@@ -53,7 +59,10 @@ public sealed class BankHtml : IBank
             else
                 date = DateTime.Parse( currentDate!, RussianCi );
 
-            transactions.Add( new Transaction { Date = date, BankAccount = Normalize( descNode ), Amount = -1 * Convert( amountNode ), Payee = titleNode, Memo = categoryNode } );
+            transactions.Add( new Transaction
+                              {
+                                  Date = date, BankAccount = Normalize( descNode ), Amount = -1 * Convert( amountNode ), Payee = titleNode, Memo = categoryNode,
+                              } );
         }
 
 

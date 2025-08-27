@@ -32,7 +32,8 @@ internal sealed class TransactionsAdder( API ynabApi, BudgetSummary budget, YNAB
         if ( updateTransactions.Any() )
         {
             logger.Trace( "Updated: " + JsonConvert.SerializeObject( updateTransactions, Formatting.Indented ) );
-            ynabApi.Transactions.UpdateTransactions( budget.Id.ToString(), new UpdateTransactionsWrapper( updateTransactions ) );
+            ynabApi.Transactions.UpdateTransactions( budget.Id.ToString(),
+                                                     new UpdateTransactionsWrapper( updateTransactions ) );
             progress.AppendLine( $"Updated: {updateTransactions.Count}" );
         }
 
@@ -40,7 +41,8 @@ internal sealed class TransactionsAdder( API ynabApi, BudgetSummary budget, YNAB
             return;
 
         logger.Trace( "New: " + JsonConvert.SerializeObject( saveTransactions, Formatting.Indented ) );
-        ynabApi.Transactions.CreateTransaction( budget.Id.ToString(), new SaveTransactionsWrapper( null, saveTransactions ) );
+        ynabApi.Transactions.CreateTransaction( budget.Id.ToString(),
+                                                new SaveTransactionsWrapper( null, saveTransactions ) );
         progress.AppendLine( $"New: {saveTransactions.Count}" );
     }
 
