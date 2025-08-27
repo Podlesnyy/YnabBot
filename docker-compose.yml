@@ -13,7 +13,7 @@ services:
       - dbdata:/var/lib/mysql
   ynabbotservice:
     depends_on:
-       - db  
+      - db
     build:
       context: .
       dockerfile: YnabBotService/Dockerfile
@@ -32,6 +32,6 @@ services:
       YNAB_CLIENT_ID: ${YNAB_CLIENT_ID}
       YNAB_CLIENT_SECRET: ${YNAB_CLIENT_SECRET}
       YNAB_REDIRECT_URI: ${YNAB_REDIRECT_URI}
-      
+
 volumes:
-    dbdata:
+  dbdata:

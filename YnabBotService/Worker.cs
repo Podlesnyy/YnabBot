@@ -16,26 +16,28 @@ using Microsoft.Extensions.Hosting;
 
 namespace Adp.YnabBotService;
 
-internal sealed class Worker( IConfiguration configuration ) : BackgroundService
+internal sealed class Worker(IConfiguration configuration) : BackgroundService
 {
-    protected override async Task ExecuteAsync( CancellationToken stoppingToken )
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var builder = new ContainerBuilder();
-        builder.RegisterInstance( configuration ).As< IConfiguration >();
-        builder.RegisterType< TelegramBot >().As< IMessageSender >();
-        builder.RegisterType< Oauth >().AsSelf().SingleInstance();
-        builder.RegisterType< MessageFromBotToYnabConverter >().AsSelf().SingleInstance();
+        builder.RegisterInstance(configuration).As<IConfiguration>();
+        builder.RegisterType<TelegramBot>().As<IMessageSender>();
+        builder.RegisterType<Oauth>().AsSelf().SingleInstance();
+        builder.RegisterType<MessageFromBotToYnabConverter>().AsSelf().SingleInstance();
 
-        builder.RegisterType< YnabDbContext >().AsSelf().InstancePerLifetimeScope();
+        builder.RegisterType<YnabDbContext>().AsSelf().InstancePerLifetimeScope();
 
-        var assemblies = Directory.EnumerateFiles( AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly ).Select( Assembly.LoadFrom ).ToArray();
-        builder.RegisterAssemblyTypes( assemblies ).AssignableTo< IBank >().AsImplementedInterfaces();
+        var assemblies = Directory
+            .EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly)
+            .Select(Assembly.LoadFrom).ToArray();
+        builder.RegisterAssemblyTypes(assemblies).AssignableTo<IBank>().AsImplementedInterfaces();
         var container = builder.Build();
 
-        var messageToUser = container.Resolve< MessageFromBotToYnabConverter >();
+        var messageToUser = container.Resolve<MessageFromBotToYnabConverter>();
         messageToUser.Init();
 
-        while ( !stoppingToken.IsCancellationRequested )
-            await Task.Delay( 1000, stoppingToken );
+        while (!stoppingToken.IsCancellationRequested)
+            await Task.Delay(1000, stoppingToken);
     }
 }

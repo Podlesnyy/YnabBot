@@ -1,41 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <UserSecretsId>dotnet-YnabBotService-392D456C-0D56-43FB-902A-D17AEA4F9C30</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <RootNamespace>Adp.YnabBotService</RootNamespace>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <UserSecretsId>dotnet-YnabBotService-392D456C-0D56-43FB-902A-D17AEA4F9C30</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <RootNamespace>Adp.YnabBotService</RootNamespace>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Content Remove="NLog.config" />
-  </ItemGroup>
+    <ItemGroup>
+        <Content Remove="NLog.config"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Include="NLog.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="NLog.config">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Autofac" Version="8.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.7" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Autofac" Version="8.4.0"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.8"/>
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1"/>
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Banks\AlfaBank\AlfaBank.csproj" />
-    <ProjectReference Include="..\Banks\Citibank\Citibank.csproj" />
-    <ProjectReference Include="..\Banks\Interfaces\Interfaces.csproj" />
-    <ProjectReference Include="..\Banks\OzonBank\OzonBank.csproj" />
-    <ProjectReference Include="..\Banks\SberBank\SberBank.csproj" />
-    <ProjectReference Include="..\Banks\BCC\Bcc.csproj" />
-    <ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj" />
-    <ProjectReference Include="..\Banks\VTB\VTB.csproj" />
-    <ProjectReference Include="..\Messengers\Interfaces\Interfaces.csproj" />
-    <ProjectReference Include="..\Messengers\Telegram\Telegram.csproj" />
-    <ProjectReference Include="..\Persistent\Persistent.csproj" />
-    <ProjectReference Include="..\YnabClient\YnabClient.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Banks\AlfaBank\AlfaBank.csproj"/>
+        <ProjectReference Include="..\Banks\Citibank\Citibank.csproj"/>
+        <ProjectReference Include="..\Banks\Interfaces\Interfaces.csproj"/>
+        <ProjectReference Include="..\Banks\OzonBank\OzonBank.csproj"/>
+        <ProjectReference Include="..\Banks\SberBank\SberBank.csproj"/>
+        <ProjectReference Include="..\Banks\BCC\Bcc.csproj"/>
+        <ProjectReference Include="..\Banks\Tinkoff\Tinkoff.csproj"/>
+        <ProjectReference Include="..\Banks\VTB\VTB.csproj"/>
+        <ProjectReference Include="..\Messengers\Interfaces\Interfaces.csproj"/>
+        <ProjectReference Include="..\Messengers\Telegram\Telegram.csproj"/>
+        <ProjectReference Include="..\Persistent\Persistent.csproj"/>
+        <ProjectReference Include="..\YnabClient\YnabClient.csproj"/>
+    </ItemGroup>
 </Project>

@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Adp.Banks.Interfaces</RootNamespace>
-    <AssemblyName>Banks.Interfaces</AssemblyName>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <RootNamespace>Adp.Banks.Interfaces</RootNamespace>
+        <AssemblyName>Banks.Interfaces</AssemblyName>
+    </PropertyGroup>
 
 </Project>

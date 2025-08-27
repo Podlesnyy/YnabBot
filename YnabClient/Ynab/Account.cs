@@ -17,51 +17,55 @@ internal sealed class Account
 
     public Account()
     {
-        logger.Info( "Init YNAB API" );
+        logger.Info("Init YNAB API");
     }
 
-    public Dictionary< BudgetSummary, List< YNAB.SDK.Model.Account > > DicAccounts { get; private set; } = new();
+    public Dictionary<BudgetSummary, List<YNAB.SDK.Model.Account>> DicAccounts { get; private set; } = new();
 
-    public string AddTransactions( IEnumerable< Transaction > transactions, string accessToken )
+    public string AddTransactions(IEnumerable<Transaction> transactions, string accessToken)
     {
-        lock ( objLock )
+        lock (objLock)
         {
-            var ynabApi = new API( accessToken );
+            var ynabApi = new API(accessToken);
             var ret = new StringBuilder();
-            var grTrans = transactions.GroupBy( static item => ( Budget: item.YnabBudget, Account: item.YnabAccount ) );
-            foreach ( var grTran in grTrans )
+            var grTrans = transactions.GroupBy(static item => (Budget: item.YnabBudget, Account: item.YnabAccount));
+            foreach (var grTran in grTrans)
             {
-                var budget = DicAccounts.Keys.FirstOrDefault( item => item.Name == grTran.Key.Budget );
-                if ( budget == null )
+                var budget = DicAccounts.Keys.FirstOrDefault(item => item.Name == grTran.Key.Budget);
+                if (budget == null)
                 {
-                    ret.AppendLine( "Cant find budget with name " + grTran.Key.Budget );
+                    ret.AppendLine("Cant find budget with name " + grTran.Key.Budget);
                     continue;
                 }
 
-                var account = DicAccounts[ budget ].FirstOrDefault( item => item.Name == grTran.Key.Account );
+                var account = DicAccounts[budget].FirstOrDefault(item => item.Name == grTran.Key.Account);
 
-                if ( account == null )
+                if (account == null)
                 {
-                    ret.AppendLine( "Cant find account with name " + grTran.Key.Account + " at budget " + grTran.Key.Budget );
+                    ret.AppendLine("Cant find account with name " + grTran.Key.Account + " at budget " +
+                                   grTran.Key.Budget);
                     continue;
                 }
 
-                var ynabAccountTransactionAdder = new TransactionsAdder( ynabApi, budget, account );
-                ynabAccountTransactionAdder.AddTransactions( grTran.ToList() );
-                ret.AppendLine( ynabAccountTransactionAdder.Result );
+                var ynabAccountTransactionAdder = new TransactionsAdder(ynabApi, budget, account);
+                ynabAccountTransactionAdder.AddTransactions(grTran.ToList());
+                ret.AppendLine(ynabAccountTransactionAdder.Result);
             }
 
             return ret.ToString();
         }
     }
 
-    internal void LoadBudgets( string accessToken )
+    internal void LoadBudgets(string accessToken)
     {
-        logger.Info( "Loading accounts" );
+        logger.Info("Loading accounts");
 
-        var ynabApi = new API( accessToken );
+        var ynabApi = new API(accessToken);
 
-        lock ( objLock )
-            DicAccounts = ynabApi.Budgets.GetBudgets().Data.Budgets.ToDictionary( static item => item, item => ynabApi.Accounts.GetAccounts( item.Id.ToString() ).Data.Accounts );
+        lock (objLock)
+        {
+            DicAccounts = ynabApi.Budgets.GetBudgets().Data.Budgets.ToDictionary(static item => item,
+                item => ynabApi.Accounts.GetAccounts(item.Id.ToString()).Data.Accounts);
+        }
     }
 }

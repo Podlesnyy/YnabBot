@@ -8,5 +8,5 @@ public class User
     public string MessengerUserId { get; set; }
     public YnabAccess Access { get; set; }
     public YnabAccount DefaultYnabAccount { get; set; }
-    public List< BankAccountToYnabAccount > BankAccountToYnabAccounts { get; set; }
+    public List<BankAccountToYnabAccount> BankAccountToYnabAccounts { get; set; }
 }
