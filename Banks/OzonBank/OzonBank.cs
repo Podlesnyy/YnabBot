@@ -10,63 +10,59 @@ namespace OzonBank;
 
 public sealed class OzonBank : IBank
 {
-    private static readonly CultureInfo RussianCi = new("ru");
+    private static readonly CultureInfo RussianCi = new( "ru" );
 
-    public bool IsItYour(string fileName)
-    {
-        return fileName.Contains("ozonbank");
-    }
+    public bool IsItYour( string fileName ) => fileName.Contains( "ozonbank" );
 
     public string FileEncoding => "utf-8";
 
-    public List<Transaction> Parse(MemoryStream fileContent)
+    public List< Transaction > Parse( MemoryStream fileContent )
     {
-        var tablesText = ExtractFromPdfFile(fileContent);
-        var csvString = ConvertToCsv(tablesText);
-        var transactions = GetTransactions(csvString);
+        var tablesText = ExtractFromPdfFile( fileContent );
+        var csvString = ConvertToCsv( tablesText );
+        var transactions = GetTransactions( csvString );
 
         return transactions;
     }
 
-    private static List<Transaction> GetTransactions(string csvString)
+    private static List< Transaction > GetTransactions( string csvString )
     {
-        using var reader = new StringReader(csvString);
-        var config = new CsvConfiguration(RussianCi) { Delimiter = ",", HasHeaderRecord = true, BadDataFound = null };
-        using var csv = new CsvReader(reader, config);
-        csv.Context.RegisterClassMap<TransactionMap>();
-        return csv.GetRecords<Transaction>().ToList();
+        using var reader = new StringReader( csvString );
+        var config = new CsvConfiguration( RussianCi ) { Delimiter = ",", HasHeaderRecord = true, BadDataFound = null };
+        using var csv = new CsvReader( reader, config );
+        csv.Context.RegisterClassMap< TransactionMap >();
+        return csv.GetRecords< Transaction >().ToList();
     }
 
-    private static string ConvertToCsv(IReadOnlyList<string> tablesText)
+    private static string ConvertToCsv( IReadOnlyList< string > tablesText )
     {
         // Считываем строки из файла
         var csvBuilder = new StringBuilder();
 
         // Заголовок для CSV
-        csvBuilder.AppendLine("Дата операции,Документ,Назначение платежа,Сумма операции");
+        csvBuilder.AppendLine( "Дата операции,Документ,Назначение платежа,Сумма операции" );
 
         // Обработка строк
-        for (var i = 0; i < tablesText.Count; i++)
+        for ( var i = 0; i < tablesText.Count; i++ )
         {
-            var line = tablesText[i].Trim();
+            var line = tablesText[ i ].Trim();
 
             // Пропускаем строки, начинающиеся с "ООО <ОЗОН БАНК>"
-            if (line.StartsWith("ООО <ОЗОН БАНК>", StringComparison.Ordinal) || string.IsNullOrWhiteSpace(line))
+            if ( line.StartsWith( "ООО <ОЗОН БАНК>", StringComparison.Ordinal ) || string.IsNullOrWhiteSpace( line ) )
                 continue;
 
             var formats = new[] { "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyyHH:mm:ss" };
-            if (!DateTime.TryParseExact(line, formats, CultureInfo.InvariantCulture, DateTimeStyles.None,
-                    out var transDate))
+            if ( !DateTime.TryParseExact( line, formats, CultureInfo.InvariantCulture, DateTimeStyles.None,
+                                          out var transDate ) )
                 continue;
 
             // Проверяем, что следующие строки корректно собирают запись
-            var document = i + 1 < tablesText.Count ? tablesText[i + 1].Trim() : string.Empty;
-            var description = i + 2 < tablesText.Count ? tablesText[i + 2].Trim() : string.Empty;
-            var amount = i + 3 < tablesText.Count ? tablesText[i + 3].Trim() : string.Empty;
+            var document = i + 1 < tablesText.Count ? tablesText[ i + 1 ].Trim() : string.Empty;
+            var description = i + 2 < tablesText.Count ? tablesText[ i + 2 ].Trim() : string.Empty;
+            var amount = i + 3 < tablesText.Count ? tablesText[ i + 3 ].Trim() : string.Empty;
 
             // Добавляем запись в CSV
-            csvBuilder.AppendLine(
-                $"\"{transDate.ToString("dd.MM.yyyy HH:mm:ss")}\",\"{document}\",\"{transDate.ToString("HH:mm:ss") + " " + description}\",\"{amount}\"");
+            csvBuilder.AppendLine( $"\"{transDate.ToString( "dd.MM.yyyy HH:mm:ss" )}\",\"{document}\",\"{transDate.ToString( "HH:mm:ss" ) + " " + description}\",\"{amount}\"" );
 
             // Пропускаем уже обработанные строки
             i += 3;
@@ -75,25 +71,23 @@ public sealed class OzonBank : IBank
         return csvBuilder.ToString();
     }
 
-    private static List<string> ExtractFromPdfFile(Stream fileContent)
+    private static List< string > ExtractFromPdfFile( Stream fileContent )
     {
-        var pdfDocument = new Document(fileContent);
-        var ret = new List<string>();
-        foreach (var page in pdfDocument.Pages)
+        var pdfDocument = new Document( fileContent );
+        var ret = new List< string >();
+        foreach ( var page in pdfDocument.Pages )
         {
             var absorber = new TableAbsorber();
-            absorber.Visit(page);
+            absorber.Visit( page );
 
-            foreach (var table in absorber.TableList)
-            {
-                ret.AddRange(from row in table.RowList
-                    select row.CellList.Aggregate("",
-                        static (current, cell) =>
-                            cell.TextFragments.Aggregate(current,
-                                static (current, fragment) =>
-                                    fragment.Segments.Aggregate(current,
-                                        static (current, seg) => current + seg.Text))));
-            }
+            foreach ( var table in absorber.TableList )
+                ret.AddRange( from row in table.RowList
+                              select row.CellList.Aggregate( "",
+                                                             static ( current, cell ) =>
+                                                                 cell.TextFragments.Aggregate( current,
+                                                                                               static ( current, fragment ) =>
+                                                                                                   fragment.Segments.Aggregate( current,
+                                                                                                                                static ( current, seg ) => current + seg.Text ) ) ) );
         }
 
         return ret;
