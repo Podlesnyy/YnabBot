@@ -19,7 +19,7 @@
 
     <ItemGroup>
         <PackageReference Include="Autofac" Version="8.4.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.8"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.10" />
         <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1"/>
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0"/>
     </ItemGroup>
