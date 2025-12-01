@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
-using Aspose.Pdf;
-using Aspose.Pdf.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
