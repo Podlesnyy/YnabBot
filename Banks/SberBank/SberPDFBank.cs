@@ -89,7 +89,7 @@ public sealed class SberPdfBank : IBank
     private (Transaction, string timeString) CreateTransaction( string firstTransactionLine )
     {
         const string pattern =
-            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+)\s+(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
+            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+\s+)?(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
 
         var match = Regex.Match( firstTransactionLine, pattern );
 
@@ -99,7 +99,7 @@ public sealed class SberPdfBank : IBank
         var dateString = match.Groups[ "date" ].Value;
         var timeString = match.Groups[ "time" ].Value;
         var description = match.Groups[ "description" ].Value.Trim();
-        var authCode = match.Groups[ "authCode" ].Value;
+        var authCode = match.Groups[ "authCode" ].Value.Trim();
         var sumString =
             match.Groups[ "sum" ]
                  .Value.Replace( " ", "" )
