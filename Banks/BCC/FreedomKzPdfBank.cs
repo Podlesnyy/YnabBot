@@ -30,15 +30,18 @@ public sealed class FreedomKzPdfBank : IBank
 
     private void GetBankAccount( IEnumerable< string > extractFromPdfFile )
     {
-        // Регулярное выражение для строки вида: "40817 810 8 3829 7144493"
-        const string pattern = @"(\d{5} \d{3} \d{1} \d{4} \d{7})";
+        // Ищем строку вида: "Счет: KZ71551A600002124455"
+        const string pattern = @"Счет:\s*(KZ[0-9A-Z]+)";
         var regex = new Regex( pattern );
 
-        // Проход по массиву строк
-        foreach ( var match in extractFromPdfFile.Select( str => regex.Match( str ) ).Where( static match => match.Success ) )
+        foreach ( var line in extractFromPdfFile )
         {
-            bankAccount = match.Groups[ 1 ].Value;
-            return;
+            var match = regex.Match( line );
+            if ( match.Success )
+            {
+                bankAccount = match.Groups[ 1 ].Value;
+                return;
+            }
         }
 
         throw new Exception( "Не удалось найти номер счета." );
