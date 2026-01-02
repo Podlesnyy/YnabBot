@@ -5,23 +5,23 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
-using Aspose.Pdf;
-using Aspose.Pdf.Text;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
 
-namespace Adp.Banks.SberBank;
+namespace Adp.Banks.BCC;
 
 // ReSharper disable once UnusedType.Global
-public sealed class SberPdfBank : IBank
+public sealed class FreedomKzPdfBank : IBank
 {
     private string bankAccount;
 
-    public bool IsItYour( string fileName ) => fileName.Contains( "Выписка_по_сч" ) || fileName.Contains( "Выписка по сч" );
+    public bool IsItYour( string fileName ) => fileName.Contains( "legal_statement" );
 
     public string FileEncoding => "utf-8";
 
     public List< Transaction > Parse( MemoryStream fileContent )
     {
-        var extractFromPdfFile = ExtractFromPdfFile( fileContent );
+        var extractFromPdfFile = ExtractLines( fileContent );
         GetBankAccount( extractFromPdfFile );
         var transactions = GetTransactions( extractFromPdfFile );
 
@@ -30,15 +30,18 @@ public sealed class SberPdfBank : IBank
 
     private void GetBankAccount( IEnumerable< string > extractFromPdfFile )
     {
-        // Регулярное выражение для строки вида: "40817 810 8 3829 7144493"
-        const string pattern = @"(\d{5} \d{3} \d{1} \d{4} \d{7})";
+        // Ищем строку вида: "Счет: KZ71551A600002124455"
+        const string pattern = @"Счет:\s*(KZ[0-9A-Z]+)";
         var regex = new Regex( pattern );
 
-        // Проход по массиву строк
-        foreach ( var match in extractFromPdfFile.Select( str => regex.Match( str ) ).Where( static match => match.Success ) )
+        foreach ( var line in extractFromPdfFile )
         {
-            bankAccount = match.Groups[ 1 ].Value;
-            return;
+            var match = regex.Match( line );
+            if ( match.Success )
+            {
+                bankAccount = match.Groups[ 1 ].Value;
+                return;
+            }
         }
 
         throw new Exception( "Не удалось найти номер счета." );
@@ -76,20 +79,49 @@ public sealed class SberPdfBank : IBank
         throw new Exception( "Не удалось распарсить строку получателя." );
     }
 
-    private static List< string > ExtractFromPdfFile( Stream fileContent )
+    static List<string> ExtractLines(Stream fileContent)
     {
-        var pdfDocument = new Document( fileContent );
-        var textAbsorber = new TextAbsorber();
+        var lines = new List<(double y, List<Word> words)>();
+        using var doc = PdfDocument.Open(fileContent);
+        const double yTol = 5.8; // допуск склейки слов в одну строку
 
-        pdfDocument.Pages.Accept( textAbsorber );
+        foreach (var page in doc.GetPages())
+        {
+            foreach (var word in page.GetWords())
+            {
+                var y = word.BoundingBox.Bottom;
+                var line = lines.FirstOrDefault(l => Math.Abs(l.y - y) < yTol);
+                if (line.words == null)
+                {
+                    lines.Add((y, new List<Word> { word }));
+                }
+                else
+                {
+                    line.words.Add(word);
+                }
+            }
+        }
 
-        return textAbsorber.Text.Split( [ "\r\n", "\r", "\n" ], StringSplitOptions.None ).ToList();
+        // сортировка сверху-вниз, слева-направо
+        var textLines = lines
+                        .OrderByDescending(l => l.y)
+                        .Select(l => string.Join(" ", l.words.OrderBy(w => w.BoundingBox.Left).Select(w => w.Text)))
+                        .Select(t => NormalizeSpaces(t))
+                        .ToList();
+
+        return textLines;
     }
 
+    static string NormalizeSpaces(string s)
+    {
+        // приводим множественные пробелы к одному, убираем неразрывные и табы
+        var t = s.Replace('\u00A0', ' ').Replace('\t', ' ');
+        return Regex.Replace(t, @"\s{2,}", " ").Trim();
+    }
     private (Transaction, string timeString) CreateTransaction( string firstTransactionLine )
     {
         const string pattern =
-            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+\s+)?(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
+            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+)\s+(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
 
         var match = Regex.Match( firstTransactionLine, pattern );
 
@@ -99,7 +131,7 @@ public sealed class SberPdfBank : IBank
         var dateString = match.Groups[ "date" ].Value;
         var timeString = match.Groups[ "time" ].Value;
         var description = match.Groups[ "description" ].Value.Trim();
-        var authCode = match.Groups[ "authCode" ].Value.Trim();
+        var authCode = match.Groups[ "authCode" ].Value;
         var sumString =
             match.Groups[ "sum" ]
                  .Value.Replace( " ", "" )

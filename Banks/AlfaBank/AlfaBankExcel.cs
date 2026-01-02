@@ -9,7 +9,7 @@ namespace Adp.Banks.AlfaBank;
 
 public class AlfaBankExcel : IBank
 {
-    public bool IsItYour( string fileName ) => fileName.Contains( "Statement " );
+    public bool IsItYour( string fileName ) => fileName.Contains( "Statement " ) || fileName.Contains( "statement " );
 
     public List< Transaction > Parse( MemoryStream stream )
     {
