@@ -11,7 +11,7 @@ using Aspose.Pdf.Text;
 namespace Adp.Banks.BCC;
 
 // ReSharper disable once UnusedType.Global
-public sealed class FreedomKzPdfBank : IBank
+public sealed partial class FreedomKzPdfBank : IBank
 {
     private string bankAccount;
 
@@ -23,12 +23,6 @@ public sealed class FreedomKzPdfBank : IBank
     public string FileEncoding => "utf-8";
 
     public List<Transaction> Parse(MemoryStream fileContent)
-    {
-        var transactions = ParseLegalStatement(fileContent);
-        return transactions;
-    }
-
-    private List<Transaction> ParseLegalStatement(MemoryStream fileContent)
     {
         using var pdfDocument = new Document(fileContent);
         bankAccount = ExtractBankAccount(pdfDocument);
@@ -121,23 +115,13 @@ public sealed class FreedomKzPdfBank : IBank
             absorber.Visit(page);
 
             foreach (var table in absorber.TableList)
-            foreach (var row in table.RowList)
-            {
-                var cells = row.CellList
-                    .Select(static cell =>
+                rows.AddRange(table.RowList.Select(row => row.CellList.Select(static cell =>
                     {
-                        if (cell.TextFragments == null)
-                            return string.Empty;
+                        if (cell.TextFragments == null) return string.Empty;
 
-                        var raw = cell.TextFragments.Aggregate("",
-                            static (current, fragment) =>
-                                fragment.Segments.Aggregate(current,
-                                    static (current, seg) => current + seg.Text));
+                        var raw = cell.TextFragments.Aggregate("", static (current, fragment) => fragment.Segments.Aggregate(current, static (current, seg) => current + seg.Text));
                         return NormalizeSpaces(raw);
-                    })
-                    .ToList();
-                rows.Add(cells);
-            }
+                    }).ToList()));
         }
 
         return rows;
@@ -163,7 +147,7 @@ public sealed class FreedomKzPdfBank : IBank
 
     private static string NormalizeForComparison(string input)
     {
-        return Regex.Replace(NormalizeSpaces(input), @"\s+", "").ToLowerInvariant();
+        return MyRegex().Replace(NormalizeSpaces(input), "").ToLowerInvariant();
     }
 
 
@@ -197,4 +181,7 @@ public sealed class FreedomKzPdfBank : IBank
     }
 
     private readonly record struct ColumnMap(int Date, int Document, int Debit, int Credit, int Memo);
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex MyRegex();
 }
