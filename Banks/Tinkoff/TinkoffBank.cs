@@ -10,7 +10,7 @@ namespace Adp.Banks.Tinkoff;
 
 public class TinkoffBank : IBank
 {
-    public bool IsItYour( string fileName ) => fileName.Contains( "operations" );
+    public bool IsItYour( string fileName ) => fileName.Contains("operations", StringComparison.CurrentCultureIgnoreCase);
 
     public string FileEncoding => "utf-8";
 
