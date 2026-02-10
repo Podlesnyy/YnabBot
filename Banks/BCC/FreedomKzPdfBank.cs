@@ -5,147 +5,183 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Adp.Banks.Interfaces;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
+using Aspose.Pdf;
+using Aspose.Pdf.Text;
 
 namespace Adp.Banks.BCC;
 
 // ReSharper disable once UnusedType.Global
-public sealed class FreedomKzPdfBank : IBank
+public sealed partial class FreedomKzPdfBank : IBank
 {
     private string bankAccount;
 
-    public bool IsItYour( string fileName ) => fileName.Contains( "legal_statement" );
+    public bool IsItYour(string fileName)
+    {
+        return fileName.Contains("legal_statement") && fileName.Contains("current");
+    }
 
     public string FileEncoding => "utf-8";
 
-    public List< Transaction > Parse( MemoryStream fileContent )
+    public List<Transaction> Parse(MemoryStream fileContent)
     {
-        var extractFromPdfFile = ExtractLines( fileContent );
-        GetBankAccount( extractFromPdfFile );
-        var transactions = GetTransactions( extractFromPdfFile );
+        using var pdfDocument = new Document(fileContent);
+        bankAccount = ExtractBankAccount(pdfDocument);
+        var tableRows = ExtractTableRows(pdfDocument);
+        if (tableRows.Count == 0)
+            return [];
+
+        var columnMap = BuildColumnMap(tableRows);
+        var transactions = new List<Transaction>();
+
+        foreach (var row in tableRows)
+        {
+            if (row.All(static item => string.IsNullOrWhiteSpace(item)))
+                continue;
+
+            if (IsHeaderRow(row))
+                continue;
+
+            var dateText = GetCell(row, columnMap.Date);
+            if (!TryParseDate(dateText, out var date))
+                continue;
+
+            var debitText = GetCell(row, columnMap.Debit);
+            var creditText = GetCell(row, columnMap.Credit);
+
+            var hasDebit = TryParseAmount(debitText, out var debit);
+            var hasCredit = TryParseAmount(creditText, out var credit);
+            if (!hasDebit && !hasCredit)
+                continue;
+
+            debit = Math.Abs(debit);
+            credit = Math.Abs(credit);
+
+            var amount = hasDebit && debit > 0 ? debit : -credit;
+            if (Math.Abs(amount) < 0.0001)
+                continue;
+
+            var id = NormalizeSpaces(GetCell(row, columnMap.Document));
+            var memo = NormalizeSpaces(GetCell(row, columnMap.Memo));
+            var memoCompact = NormalizeForComparison(memo);
+            if (memoCompact.Contains(NormalizeForComparison("Выплата вклада с депозитного договора")) ||
+                memoCompact.Contains(NormalizeForComparison("Выплата вклада по Договору")) ||
+                memoCompact.StartsWith(NormalizeForComparison("по договору KZ")))
+                continue;
+
+            transactions.Add(new Transaction(bankAccount, date, amount, memo, 0,
+                string.IsNullOrWhiteSpace(id) ? null : id, ""));
+        }
 
         return transactions;
     }
 
-    private void GetBankAccount( IEnumerable< string > extractFromPdfFile )
+    private static string ExtractBankAccount(Document pdfDocument)
     {
-        // Ищем строку вида: "Счет: KZ71551A600002124455"
-        const string pattern = @"Счет:\s*(KZ[0-9A-Z]+)";
-        var regex = new Regex( pattern );
+        var textAbsorber = new TextAbsorber();
+        pdfDocument.Pages.Accept(textAbsorber);
+        var text = NormalizeSpaces(textAbsorber.Text);
 
-        foreach ( var line in extractFromPdfFile )
+        var patterns = new[]
         {
-            var match = regex.Match( line );
-            if ( match.Success )
-            {
-                bankAccount = match.Groups[ 1 ].Value;
-                return;
-            }
+            @"Счет:\s*(KZ[0-9A-Z]{10,})",
+            @"IBAN\s*[:№]?\s*(KZ[0-9A-Z]{10,})",
+            @"KZ[0-9A-Z]{10,}"
+        };
+
+        foreach (var pattern in patterns)
+        {
+            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+            if (match.Success)
+                return match.Groups.Count > 1 ? match.Groups[1].Value : match.Value;
         }
 
-        throw new Exception( "Не удалось найти номер счета." );
+        throw new Exception("Не удалось найти номер счета.");
     }
 
-    private List< Transaction > GetTransactions( IReadOnlyList< string > pdfTextLines )
-    {
-        const string datePattern = @"^\s*\d{2}\.\d{2}\.\d{4}";
-        var ret = new List< Transaction >();
-        for ( var i = 0; i < pdfTextLines.Count - 1; i++ )
-            if ( Regex.IsMatch( pdfTextLines[ i ], datePattern ) && Regex.IsMatch( pdfTextLines[ i + 1 ], datePattern ) )
-            {
-                var firstTransactionLine = pdfTextLines[ i ];
-                var (transaction, time) = CreateTransaction( firstTransactionLine );
-                var secondTransactionLine = pdfTextLines[ ++i ];
-                transaction.Memo = GetMemo( secondTransactionLine );
-                while ( pdfTextLines[ ++i ].Trim() != "" )
-                    transaction.Memo += " " + pdfTextLines[ i ].Trim();
-                transaction.Memo += " " + time;
 
-                ret.Add( transaction );
-            }
-
-        return ret;
-    }
-
-    private static string GetMemo( string secondTransactionLine )
-    {
-        const string pattern = @"\d{2}\.\d{2}\.\d{4}\s+(.*)";
-        var regex = new Regex( pattern );
-        var match = regex.Match( secondTransactionLine );
-        if ( match.Success )
-            return match.Groups[ 1 ].Value.Trim(); // Возвращаем текст после даты без лишних пробелов
-
-        throw new Exception( "Не удалось распарсить строку получателя." );
-    }
-
-    static List<string> ExtractLines(Stream fileContent)
-    {
-        var lines = new List<(double y, List<Word> words)>();
-        using var doc = PdfDocument.Open(fileContent);
-        const double yTol = 5.8; // допуск склейки слов в одну строку
-
-        foreach (var page in doc.GetPages())
-        {
-            foreach (var word in page.GetWords())
-            {
-                var y = word.BoundingBox.Bottom;
-                var line = lines.FirstOrDefault(l => Math.Abs(l.y - y) < yTol);
-                if (line.words == null)
-                {
-                    lines.Add((y, new List<Word> { word }));
-                }
-                else
-                {
-                    line.words.Add(word);
-                }
-            }
-        }
-
-        // сортировка сверху-вниз, слева-направо
-        var textLines = lines
-                        .OrderByDescending(l => l.y)
-                        .Select(l => string.Join(" ", l.words.OrderBy(w => w.BoundingBox.Left).Select(w => w.Text)))
-                        .Select(t => NormalizeSpaces(t))
-                        .ToList();
-
-        return textLines;
-    }
-
-    static string NormalizeSpaces(string s)
+    private static string NormalizeSpaces(string s)
     {
         // приводим множественные пробелы к одному, убираем неразрывные и табы
-        var t = s.Replace('\u00A0', ' ').Replace('\t', ' ');
+        var t = (s ?? string.Empty).Replace('\u00A0', ' ').Replace('\t', ' ').Replace('\u202F', ' ');
         return Regex.Replace(t, @"\s{2,}", " ").Trim();
     }
-    private (Transaction, string timeString) CreateTransaction( string firstTransactionLine )
+
+    private static List<List<string>> ExtractTableRows(Document pdfDocument)
     {
-        const string pattern =
-            @"(?<date>\d{2}\.\d{2}\.\d{4})\s+(?<time>\d{2}:\d{2})\s+(?<authCode>\d+)\s+(?<description>.+?)\s+(?<sum>[+-]?\d{1,3}(?:\s?\d{3})*,\d{2})";
+        var rows = new List<List<string>>();
+        foreach (var page in pdfDocument.Pages)
+        {
+            var absorber = new TableAbsorber();
+            absorber.Visit(page);
 
-        var match = Regex.Match( firstTransactionLine, pattern );
+            foreach (var table in absorber.TableList)
+                rows.AddRange(table.RowList.Select(row => row.CellList.Select(static cell =>
+                    {
+                        if (cell.TextFragments == null) return string.Empty;
 
-        if ( !match.Success )
-            throw new Exception( "Не удалось распарсить строку транзакции." );
+                        var raw = cell.TextFragments.Aggregate("", static (current, fragment) => fragment.Segments.Aggregate(current, static (current, seg) => current + seg.Text));
+                        return NormalizeSpaces(raw);
+                    }).ToList()));
+        }
 
-        var dateString = match.Groups[ "date" ].Value;
-        var timeString = match.Groups[ "time" ].Value;
-        var description = match.Groups[ "description" ].Value.Trim();
-        var authCode = match.Groups[ "authCode" ].Value;
-        var sumString =
-            match.Groups[ "sum" ]
-                 .Value.Replace( " ", "" )
-                 .Replace( "\u00A0", "" ); // Убираем пробелы для корректного парсинга числа
-        if ( !sumString.StartsWith( "+", StringComparison.Ordinal ) )
-            sumString = "-" + sumString;
-
-        // Преобразование в DateTime для даты
-        var date = DateTime.ParseExact( dateString, "dd.MM.yyyy", CultureInfo.InvariantCulture );
-        // Преобразование суммы в double
-        var sum = -1
-                  * double.Parse( sumString, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
-                                  new CultureInfo( "ru-RU" ) );
-
-        return ( new Transaction( bankAccount, date, sum, null, 0, authCode, description ), timeString );
+        return rows;
     }
+
+    private static ColumnMap BuildColumnMap(List<List<string>> rows)
+    {
+        return new ColumnMap(0, 1, 7, 8, 9);
+    }
+
+    private static bool IsHeaderRow(IReadOnlyList<string> row)
+    {
+        var normalized = row.Select(NormalizeHeader).ToList();
+        return normalized.Any(static item => item.Contains("дата")) &&
+               normalized.Any(static item => item.Contains("дебет")) &&
+               normalized.Any(static item => item.Contains("кредит"));
+    }
+
+    private static string NormalizeHeader(string input)
+    {
+        return NormalizeSpaces(input).ToLowerInvariant();
+    }
+
+    private static string NormalizeForComparison(string input)
+    {
+        return MyRegex().Replace(NormalizeSpaces(input), "").ToLowerInvariant();
+    }
+
+
+    private static string GetCell(IReadOnlyList<string> row, int index)
+    {
+        return index >= 0 && index < row.Count ? row[index] : string.Empty;
+    }
+
+    private static bool TryParseAmount(string input, out double value)
+    {
+        value = 0;
+        if (string.IsNullOrWhiteSpace(input))
+            return false;
+
+        var cleaned = NormalizeSpaces(input)
+            .Replace("−", "-")
+            .Replace("+", "");
+        cleaned = Regex.Replace(cleaned, @"[^\d,.\-]", "")
+            .Replace(" ", "")
+            .Replace(",", ".");
+
+        return double.TryParse(cleaned, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+            CultureInfo.InvariantCulture, out value);
+    }
+
+    private static bool TryParseDate(string input, out DateTime date)
+    {
+        var txt = NormalizeSpaces(input);
+        var formats = new[] { "dd.MM.yyyy", "dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy HH:mm" };
+        return DateTime.TryParseExact(txt, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+    }
+
+    private readonly record struct ColumnMap(int Date, int Document, int Debit, int Credit, int Memo);
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex MyRegex();
 }

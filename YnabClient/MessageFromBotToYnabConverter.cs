@@ -54,7 +54,9 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
         setdefaultbudget-Set your default budget and account for quick transactions adding
         listynabaccounts-List all your YNAB budgets and accounts
         listmatching-List bank account matching YNAB accounts
+        getsettings-Export current matching as settings.yaml
         removemyinfo-Remove all your stored info
+        reloadynabaccounts-Reload YNAB budgets/accounts and revalidate mapping
         */
 
         switch ( message )
@@ -72,8 +74,14 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
             case "/listynabaccounts":
                 GetUser( replyInfo ).ListYnabAccountsCommand( replyInfo );
                 break;
+            case "/reloadynabaccounts":
+                GetUser( replyInfo ).ReloadYnabAccountsCommand( replyInfo );
+                break;
             case "/listmatching":
                 GetUser( replyInfo ).ListBankAccountsCommand( replyInfo );
+                break;
+            case "/getsettings":
+                SendSettingsFile( replyInfo );
                 break;
             case "/removemyinfo":
                 RemoveUser( replyInfo );
@@ -124,6 +132,25 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
     private void SendByeByeMessage( ReplyInfo replyInfo )
     {
         messageSender.SendMessage( replyInfo, "All your account information removed. Thank you for your time. See ya!" );
+    }
+
+    private void SendSettingsFile( ReplyInfo replyInfo )
+    {
+        var dbUser = GetDbUser( replyInfo.UserId );
+        var mappings = dbUser.BankAccountToYnabAccounts.Select( static item => new BankAccountToYnabAccount
+        {
+            BankAccount = item.BankAccount,
+            YnabAccount = new YnabAccount
+            {
+                Budget = item.YnabAccount?.Budget,
+                Account = item.YnabAccount?.Account,
+            },
+        } ).ToList();
+
+        var serializer = new SerializerBuilder().ConfigureDefaultValuesHandling( DefaultValuesHandling.OmitDefaults ).Build();
+        var yaml = serializer.Serialize( mappings );
+        var stream = new MemoryStream( Encoding.UTF8.GetBytes( yaml ) );
+        messageSender.SendFile( replyInfo, "settings.yaml", stream );
     }
 
     private List< Transaction > ParseFile( string fileName, MemoryStream stream )

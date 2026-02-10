@@ -11,8 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NLog" Version="6.0.7" />
-        <PackageReference Include="Telegram.Bot" Version="22.8.0" />
+        <PackageReference Include="NLog" Version="6.1.0" />
+        <PackageReference Include="Telegram.Bot" Version="22.9.0" />
     </ItemGroup>
 
     <ItemGroup>

@@ -104,11 +104,104 @@ internal sealed class User
         machine.Fire( listAccounts, replyInfo );
     }
 
+    public void ReloadYnabAccountsCommand( ReplyInfo replyInfo )
+    {
+        if ( string.IsNullOrWhiteSpace( dbUser.Access.AccessToken ) &&
+             string.IsNullOrWhiteSpace( dbUser.Access.RefreshToken ) )
+        {
+            messageSender.SendMessage( replyInfo, "Please authorize bot with /auth before reloading accounts" );
+            machine.Fire( Trigger.Unknown );
+            return;
+        }
+
+        if ( !TryLoadBudgets( replyInfo ) )
+            return;
+
+        var mappingsSnapshot = dbUser.BankAccountToYnabAccounts.ToList();
+        var valid = new List< BankAccountToYnabAccount >();
+        var invalid = new List< BankAccountToYnabAccount >();
+
+        foreach ( var mapping in mappingsSnapshot )
+        {
+            if ( IsValidMapping( mapping ) )
+                valid.Add( mapping );
+            else
+                invalid.Add( mapping );
+        }
+
+        dbUser.BankAccountToYnabAccounts.Clear();
+        dbUser.BankAccountToYnabAccounts.AddRange( valid );
+        dbSaver.Save();
+
+        if ( invalid.Count > 0 )
+        {
+            var invalidList = string.Join( Environment.NewLine,
+                                           invalid.Select( static item =>
+                                                               $"{item.BankAccount} - {item.YnabAccount?.Budget}\\{item.YnabAccount?.Account}" ) );
+            messageSender.SendMessage( replyInfo,
+                                       "Some mappings are invalid and were removed. Please check budget/account names:" +
+                                       Environment.NewLine + invalidList );
+        }
+
+        var budgetSummary =
+            account.DicAccounts.Keys.FirstOrDefault( item => item.Name == dbUser.DefaultYnabAccount.Budget );
+        if ( budgetSummary == null )
+        {
+            machine.Fire( setDefaultBudgetTrigger, replyInfo );
+            return;
+        }
+
+        var budgetAccount = account.DicAccounts[ budgetSummary ]
+                                   .FirstOrDefault( item => item.Name == dbUser.DefaultYnabAccount.Account );
+        if ( budgetAccount == null )
+        {
+            machine.Fire( setDefaultAccountTrigger, replyInfo );
+            return;
+        }
+
+        messageSender.SendMessage( replyInfo, "YNAB accounts reloaded" );
+        ListBankAccountsCommand( replyInfo );
+    }
+
     public void AddBankAccounts( ReplyInfo replyInfo, IEnumerable< BankAccountToYnabAccount > listSynonyms )
     {
+        if ( string.IsNullOrWhiteSpace( dbUser.Access.AccessToken ) &&
+             string.IsNullOrWhiteSpace( dbUser.Access.RefreshToken ) )
+        {
+            messageSender.SendMessage( replyInfo, "Please authorize bot with /auth before uploading settings.yaml" );
+            machine.Fire( Trigger.Unknown );
+            return;
+        }
+
+        if ( !TryLoadBudgets( replyInfo ) )
+            return;
+
+        var mappings = listSynonyms?.ToList() ?? new List< BankAccountToYnabAccount >();
+        var valid = new List< BankAccountToYnabAccount >();
+        var invalid = new List< BankAccountToYnabAccount >();
+
+        foreach ( var mapping in mappings )
+        {
+            if ( IsValidMapping( mapping ) )
+                valid.Add( mapping );
+            else
+                invalid.Add( mapping );
+        }
+
         dbUser.BankAccountToYnabAccounts.Clear();
-        dbUser.BankAccountToYnabAccounts.AddRange( listSynonyms );
+        dbUser.BankAccountToYnabAccounts.AddRange( valid );
         dbSaver.Save();
+
+        if ( invalid.Count > 0 )
+        {
+            var invalidList = string.Join( Environment.NewLine,
+                                           invalid.Select( static item =>
+                                                               $"{item.BankAccount} - {item.YnabAccount?.Budget}\\{item.YnabAccount?.Account}" ) );
+            messageSender.SendMessage( replyInfo,
+                                       "Some mappings are invalid and were skipped. Please check budget/account names:" +
+                                       Environment.NewLine + invalidList );
+        }
+
         ListBankAccountsCommand( replyInfo );
     }
 
@@ -431,6 +524,22 @@ internal sealed class User
         }
 
         return true;
+    }
+
+    private bool IsValidMapping( BankAccountToYnabAccount mapping )
+    {
+        if ( mapping == null || string.IsNullOrWhiteSpace( mapping.BankAccount ) )
+            return false;
+
+        if ( mapping.YnabAccount == null || string.IsNullOrWhiteSpace( mapping.YnabAccount.Budget ) ||
+             string.IsNullOrWhiteSpace( mapping.YnabAccount.Account ) )
+            return false;
+
+        var budgetSummary = account.DicAccounts.Keys.FirstOrDefault( item => item.Name == mapping.YnabAccount.Budget );
+        if ( budgetSummary == null )
+            return false;
+
+        return account.DicAccounts[ budgetSummary ].Any( item => item.Name == mapping.YnabAccount.Account );
     }
 
     private enum Trigger

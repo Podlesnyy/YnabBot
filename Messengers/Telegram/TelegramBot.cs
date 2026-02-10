@@ -88,6 +88,25 @@ public sealed class TelegramBot( IConfiguration configuration ) : IMessageSender
         }
     }
 
+    public async Task SendFile( ReplyInfo replyInfo, string fileName, MemoryStream content )
+    {
+        try
+        {
+            if ( content == null || content.Length == 0 )
+                return;
+
+            content.Position = 0;
+            logger.Info( $"Reply with document in chat {Convert.ToInt64( replyInfo.ChatId )} file: {fileName} on {Convert.ToInt32( replyInfo.MessageId )}" );
+            var inputFile = new InputFileStream( content, fileName );
+            await botClient.SendDocument( Convert.ToInt64( replyInfo.ChatId ), inputFile,
+                                          replyParameters: new ReplyParameters { MessageId = Convert.ToInt32( replyInfo.MessageId ) } );
+        }
+        catch ( Exception e )
+        {
+            logger.Error( e );
+        }
+    }
+
     private async Task HandleUpdateAsync( Update update )
     {
         try
