@@ -65,7 +65,10 @@ internal sealed class Account
         {
             DicAccounts = ynabApi.Budgets.GetBudgets()
                                  .Data.Budgets.ToDictionary( static item => item,
-                                                             item => ynabApi.Accounts.GetAccounts( item.Id.ToString() ).Data.Accounts );
+                                                             item => ynabApi.Accounts.GetAccounts( item.Id.ToString() )
+                                                                            .Data.Accounts
+                                                                            .Where( static account => account.Closed != true )
+                                                                            .ToList() );
         }
     }
 }
