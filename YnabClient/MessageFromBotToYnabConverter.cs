@@ -57,6 +57,7 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
         getsettings-Export current matching as settings.yaml
         removemyinfo-Remove all your stored info
         reloadynabaccounts-Reload YNAB budgets/accounts and revalidate mapping
+        updatemappings-Update bank account matching from YNAB Account Notes
         */
 
         switch ( message )
@@ -76,6 +77,9 @@ public sealed class MessageFromBotToYnabConverter : IMessageReceiver, IDbSaver
                 break;
             case "/reloadynabaccounts":
                 GetUser( replyInfo ).ReloadYnabAccountsCommand( replyInfo );
+                break;
+            case "/updatemappings":
+                GetUser( replyInfo ).UpdateMappingsCommand( replyInfo );
                 break;
             case "/listmatching":
                 GetUser( replyInfo ).ListBankAccountsCommand( replyInfo );

@@ -163,6 +163,85 @@ internal sealed class User
         ListBankAccountsCommand( replyInfo );
     }
 
+    public void UpdateMappingsCommand( ReplyInfo replyInfo )
+    {
+        if ( string.IsNullOrWhiteSpace( dbUser.Access.AccessToken ) &&
+             string.IsNullOrWhiteSpace( dbUser.Access.RefreshToken ) )
+        {
+            messageSender.SendMessage( replyInfo, "Please authorize bot with /auth before updating mappings" );
+            machine.Fire( Trigger.Unknown );
+            return;
+        }
+
+        if ( !TryLoadBudgets( replyInfo ) )
+            return;
+
+        var mappingsFromNotes = BuildMappingsFromYnabAccountNotes();
+        var existingByBankAccount = new Dictionary< string, BankAccountToYnabAccount >( StringComparer.Ordinal );
+        foreach ( var existing in dbUser.BankAccountToYnabAccounts )
+        {
+            var normalizedBankAccount = NormalizeBankAccount( existing.BankAccount );
+            if ( normalizedBankAccount == null )
+                continue;
+
+            if ( existingByBankAccount.ContainsKey( normalizedBankAccount ) )
+            {
+                logger.Warn( $"Duplicate existing mapping '{normalizedBankAccount}' found in DB. Keeping first mapping." );
+                continue;
+            }
+
+            existingByBankAccount[ normalizedBankAccount ] = existing;
+        }
+
+        var added = 0;
+        var updated = 0;
+        var unchanged = 0;
+        foreach ( var mappingFromNotes in mappingsFromNotes.Values )
+        {
+            var bankAccount = NormalizeBankAccount( mappingFromNotes.BankAccount );
+            if ( bankAccount == null )
+                continue;
+
+            if ( existingByBankAccount.TryGetValue( bankAccount, out var existing ) )
+            {
+                existing.YnabAccount ??= new YnabAccount();
+                var isChanged = !string.Equals( existing.YnabAccount.Budget, mappingFromNotes.YnabAccount?.Budget,
+                                                StringComparison.Ordinal ) ||
+                                !string.Equals( existing.YnabAccount.Account, mappingFromNotes.YnabAccount?.Account,
+                                                StringComparison.Ordinal );
+
+                existing.BankAccount = bankAccount;
+                existing.YnabAccount.Budget = mappingFromNotes.YnabAccount?.Budget;
+                existing.YnabAccount.Account = mappingFromNotes.YnabAccount?.Account;
+
+                if ( isChanged )
+                    updated++;
+                else
+                    unchanged++;
+
+                continue;
+            }
+
+            dbUser.BankAccountToYnabAccounts.Add( new BankAccountToYnabAccount
+            {
+                BankAccount = bankAccount,
+                YnabAccount = new YnabAccount
+                {
+                    Budget = mappingFromNotes.YnabAccount?.Budget,
+                    Account = mappingFromNotes.YnabAccount?.Account,
+                },
+            } );
+
+            added++;
+        }
+
+        dbSaver.Save();
+
+        messageSender.SendMessage( replyInfo,
+                                   $"Mappings updated from YNAB Account Notes. Processed {mappingsFromNotes.Count} mapping(s): added {added}, updated {updated}, unchanged {unchanged}. Existing mappings from settings.yaml were kept." );
+        ListBankAccountsCommand( replyInfo );
+    }
+
     public void AddBankAccounts( ReplyInfo replyInfo, IEnumerable< BankAccountToYnabAccount > listSynonyms )
     {
         if ( string.IsNullOrWhiteSpace( dbUser.Access.AccessToken ) &&
@@ -353,6 +432,7 @@ internal sealed class User
     private void OnAddTransactions( in ReplyInfo replyInfo, IReadOnlyCollection< Transaction > transactions )
     {
         logger.Trace( $"Transactios count = {transactions.Count}" );
+
         foreach ( var transaction in transactions )
         {
             var accountSettings =
@@ -372,6 +452,46 @@ internal sealed class User
         var result = account.AddTransactions( transactions, AccessToken );
         messageSender.SendMessage( replyInfo, result );
     }
+
+    private IReadOnlyDictionary< string, BankAccountToYnabAccount > BuildMappingsFromYnabAccountNotes()
+    {
+        var mappings = new Dictionary< string, BankAccountToYnabAccount >( StringComparer.Ordinal );
+        var ambiguousBankAccounts = new HashSet< string >( StringComparer.Ordinal );
+        foreach ( var (budgetSummary, accounts) in account.DicAccounts )
+        {
+            foreach ( var budgetAccount in accounts )
+            {
+                foreach ( var bankAccount in AccountNotesMappingParser.ParseBankAccounts( budgetAccount.Note ) )
+                {
+                    if ( ambiguousBankAccounts.Contains( bankAccount ) )
+                        continue;
+
+                    if ( mappings.ContainsKey( bankAccount ) )
+                    {
+                        mappings.Remove( bankAccount );
+                        ambiguousBankAccounts.Add( bankAccount );
+                        logger.Warn( $"Duplicate bank account mapping '{bankAccount}' found in Account Notes. Mapping ignored until duplicate is removed." );
+                        continue;
+                    }
+
+                    mappings[ bankAccount ] = new BankAccountToYnabAccount
+                    {
+                        BankAccount = bankAccount,
+                        YnabAccount = new YnabAccount
+                        {
+                            Budget = budgetSummary.Name,
+                            Account = budgetAccount.Name,
+                        },
+                    };
+                }
+            }
+        }
+
+        return mappings;
+    }
+
+    private static string NormalizeBankAccount( string bankAccount ) =>
+        string.IsNullOrWhiteSpace( bankAccount ) ? null : bankAccount.Trim();
 
     private void OnApplyUserSettings( in ReplyInfo replyInfo )
     {
