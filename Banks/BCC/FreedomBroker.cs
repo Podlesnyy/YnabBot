@@ -56,7 +56,7 @@ public sealed partial class FreedomBroker : IBank
             var operation = Normalize( worksheet.Cells[ row, 2 ].Text );
             var comment = Normalize( worksheet.Cells[ row, 3 ].Text );
             var currency = Normalize( worksheet.Cells[ row, 5 ].Text );
-            var memo = ComposeMemo( operation, comment, currency );
+            var memo = ComposeMemo( comment, currency, date );
             var id = ExtractId( operation, comment );
             var bankAccountWithCurrency = string.IsNullOrWhiteSpace( currency ) ? bankAccount : $"{bankAccount}_{currency}";
             var ynabAmount = -1 * amount;
@@ -142,19 +142,19 @@ public sealed partial class FreedomBroker : IBank
                                 CultureInfo.InvariantCulture, out amount );
     }
 
-    private static string ComposeMemo( string operation, string comment, string currency )
+    private static string ComposeMemo( string comment, string currency, DateTime date )
     {
-        var operationPart = string.IsNullOrWhiteSpace( operation ) ? string.Empty : operation;
         var commentPart = string.IsNullOrWhiteSpace( comment ) ? string.Empty : comment;
         var amountCurrencyPart = string.IsNullOrWhiteSpace( currency ) ? string.Empty : $"Валюта: {currency}";
+        var datePart = date.ToString( "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture );
 
         var parts = new List< string >();
-        if ( !string.IsNullOrWhiteSpace( operationPart ) )
-            parts.Add( operationPart );
         if ( !string.IsNullOrWhiteSpace( commentPart ) )
             parts.Add( commentPart );
         if ( !string.IsNullOrWhiteSpace( amountCurrencyPart ) )
             parts.Add( amountCurrencyPart );
+        if ( !string.IsNullOrWhiteSpace( datePart ) )
+            parts.Add( datePart );
 
         return parts.Count == 0 ? string.Empty : string.Join( ". ", parts );
     }
