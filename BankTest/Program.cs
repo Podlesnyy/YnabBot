@@ -6,10 +6,12 @@ using Adp.Banks.SberBank;
 
 Encoding.RegisterProvider( CodePagesEncodingProvider.Instance );
 
-var bank = new FreedomKzPdfBank();
+var bank = new FreedomBroker();
 //_ = bank.Parse( File.ReadAllText( @"f:\operations Sat Aug 03 07_13_52 MSK 2024-Sun Aug 18 08_33_50 MSK 2024.ofx", Encoding.GetEncoding( bank.FileEncoding ) ) );
 // ReSharper disable once UnusedVariable
 //var trans = bank.Parse( new MemoryStream( File.ReadAllBytes( @"f:\Downloads\Выписка по счёту дебетовой карты.pdf" ) ) );
-var trans = bank.Parse( new MemoryStream( File.ReadAllBytes( @"f:\Downloads\Telegram Desktop\legal_statement_2025-07-01_2026-02-10_current_1770717531.pdf" ) ) );
+var fileName = @"f:\Downloads\Telegram Desktop\tradernet_table_7A.xlsx";
+bank.IsItYour( fileName );
+var trans = bank.Parse( new MemoryStream( File.ReadAllBytes( fileName ) ) );
 
 Console.ReadLine();
