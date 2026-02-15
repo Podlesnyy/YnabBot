@@ -27,6 +27,7 @@ public sealed partial class BccHtml : IBank
             return result;
 
         foreach ( var item in items )
+        {
             try
             {
                 // дата
@@ -35,7 +36,7 @@ public sealed partial class BccHtml : IBank
                 var dateStr = NormalizeSpaces( dateNode?.InnerText ?? "" );
                 // формат из выписки: "26.08.2025"
                 if ( !DateTime.TryParseExact( dateStr, "dd.MM.yyyy", new CultureInfo( "ru-RU" ), DateTimeStyles.None,
-                                              out var date ) )
+                        out var date ) )
                     // иногда дата может быть в другом формате — можно расширить парсер
                     continue; // пропустить, если не распознали
 
@@ -51,13 +52,13 @@ public sealed partial class BccHtml : IBank
                 var (amount, currency) = ParseAmount( NormalizeSpaces( amountNode?.InnerText ?? "" ) );
 
                 var acc = currency switch
-                          {
-                              "₽" => "bccironrub",
-                              "$" => "bccironusd",
-                              "€" => "bccironeuro",
-                              "₸" => "bccirontenge",
-                              _ => "BCC_UNKNOWN",
-                          };
+                {
+                    "₽" => "bccironrub",
+                    "$" => "bccironusd",
+                    "€" => "bccironeuro",
+                    "₸" => "bccirontenge",
+                    _ => "BCC_UNKNOWN",
+                };
 
                 result.Add( new Transaction { Date = date, Payee = description, Amount = -1 * amount, BankAccount = acc } );
             }
@@ -65,6 +66,7 @@ public sealed partial class BccHtml : IBank
             {
                 Console.WriteLine( e.Message );
             }
+        }
 
         return result;
     }
