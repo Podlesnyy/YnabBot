@@ -115,13 +115,15 @@ public sealed partial class FreedomKzPdfBank : IBank
             absorber.Visit(page);
 
             foreach (var table in absorber.TableList)
+            {
                 rows.AddRange(table.RowList.Select(row => row.CellList.Select(static cell =>
-                    {
-                        if (cell.TextFragments == null) return string.Empty;
+                {
+                    if (cell.TextFragments == null) return string.Empty;
 
-                        var raw = cell.TextFragments.Aggregate("", static (current, fragment) => fragment.Segments.Aggregate(current, static (current, seg) => current + seg.Text));
-                        return NormalizeSpaces(raw);
-                    }).ToList()));
+                    var raw = cell.TextFragments.Aggregate("", static (current, fragment) => fragment.Segments.Aggregate(current, static (current, seg) => current + seg.Text));
+                    return NormalizeSpaces(raw);
+                }).ToList()));
+            }
         }
 
         return rows;
