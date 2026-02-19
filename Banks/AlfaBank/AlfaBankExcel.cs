@@ -9,11 +9,22 @@ namespace Adp.Banks.AlfaBank;
 
 public class AlfaBankExcel : IBank
 {
-    public bool IsItYour( string fileName ) => fileName.Contains( "Statement " ) || fileName.Contains( "statement " );
+    public bool IsItYour( string fileName )
+    {
+        if ( string.IsNullOrWhiteSpace( fileName ) )
+            return false;
+
+        if ( !fileName.EndsWith( ".xlsx", StringComparison.OrdinalIgnoreCase ) )
+            return false;
+
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension( fileName );
+        return fileNameWithoutExtension.StartsWith( "Statement ", StringComparison.OrdinalIgnoreCase );
+    }
 
     public List< Transaction > Parse( MemoryStream stream )
     {
         var ret = new List< Transaction >();
+        stream.Position = 0;
 
         ExcelPackage.License.SetNonCommercialPersonal( "Ynab" );
 
