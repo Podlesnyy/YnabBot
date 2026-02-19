@@ -13,7 +13,6 @@ WORKDIR /src
 COPY ["YnabBotService/YnabBotService.csproj", "YnabBotService/"]
 COPY ["Banks/AlfaBank/AlfaBank.csproj", "Banks/AlfaBank/"]
 COPY ["Banks/Interfaces/Interfaces.csproj", "Banks/Interfaces/"]
-COPY ["Banks/Citibank/Citibank.csproj", "Banks/Citibank/"]
 COPY ["Banks/OzonBank/OzonBank.csproj", "Banks/OzonBank/"]
 COPY ["Banks/SberBank/SberBank.csproj", "Banks/SberBank/"]
 COPY ["Banks/BCC/Bcc.csproj", "Banks/BCC/"]

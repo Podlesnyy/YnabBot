@@ -50,8 +50,7 @@ public sealed partial class KaspiPdf : IBank
                 continue;
 
             var operation = NormalizeSpaces( match.Groups[ "operation" ].Value );
-            var details = NormalizeSpaces( match.Groups[ "details" ].Value );
-            var memo = string.IsNullOrWhiteSpace( details ) ? operation : $"{operation} {details}";
+            var memo = NormalizeSpaces( match.Groups[ "details" ].Value );
             var ynabAmount = -1 * signedAmount;
 
             transactions.Add( new Transaction( bankAccount, date, ynabAmount, memo, 0, null, operation ) );
